@@ -1,0 +1,341 @@
+// Sesi script to generate a premium SVG representing a late-night laptop scene with a cat
+allow "std/draw" in with Draw
+
+print "Initializing SVG setup..."
+/* 
+  1. Define Linear and Radial Gradients
+   Background room wall gradient
+*/
+Draw.gradient("linear", "bgGrad", [
+  {"offset": "0%", "color": "#070814"},
+  {"offset": "50%", "color": "#0a0c20"},
+  {"offset": "100%", "color": "#04050d"}
+], {"x1": "0%", "y1": "0%", "x2": "100%", "y2": "100%"})
+
+// Sky outside the window
+Draw.gradient("linear", "skyGrad", [
+  {"offset": "0%", "color": "#02040a"},
+  {"offset": "60%", "color": "#090d22"},
+  {"offset": "100%", "color": "#181436"}
+], {"x1": "0%", "y1": "0%", "x2": "0%", "y2": "100%"})
+
+// Window reflection gradient
+Draw.gradient("linear", "glassReflect", [
+  {"offset": "0%", "color": "#ffffff", "opacity": 0.08},
+  {"offset": "40%", "color": "#ffffff", "opacity": 0.01},
+  {"offset": "100%", "color": "#ffffff", "opacity": 0.0}
+], {"x1": "0%", "y1": "0%", "x2": "100%", "y2": "100%"})
+
+// Ambient Screen Glow Radial Gradient
+Draw.gradient("radial", "screenGlowGrad", [
+  {"offset": "0%", "color": "#00f2fe", "opacity": 0.35},
+  {"offset": "40%", "color": "#7c3aed", "opacity": 0.15},
+  {"offset": "100%", "color": "#000000", "opacity": 0.0}
+], {"cx": "50%", "cy": "50%", "r": "50%"})
+
+// Desk Light Cone Linear Gradient
+Draw.gradient("linear", "deskGlowGrad", [
+  {"offset": "0%", "color": "#00f2fe", "opacity": 0.4},
+  {"offset": "50%", "color": "#6366f1", "opacity": 0.15},
+  {"offset": "100%", "color": "#030712", "opacity": 0.0}
+], {"x1": "0%", "y1": "0%", "x2": "0%", "y2": "100%"})
+
+// Laptop metallic gradient
+Draw.gradient("linear", "laptopMetalGrad", [
+  {"offset": "0%", "color": "#4b5563"},
+  {"offset": "50%", "color": "#1f2937"},
+  {"offset": "100%", "color": "#111827"}
+], {"x1": "0%", "y1": "0%", "x2": "100%", "y2": "0%"})
+
+// Desk surface gradient
+Draw.gradient("linear", "deskGrad", [
+  {"offset": "0%", "color": "#0e131f"},
+  {"offset": "100%", "color": "#030408"}
+], {"x1": "0%", "y1": "0%", "x2": "0%", "y2": "100%"})
+
+// Screen LCD backlight gradient
+Draw.gradient("radial", "screenOverlayGrad", [
+  {"offset": "0%", "color": "#00f2fe", "opacity": 0.25},
+  {"offset": "100%", "color": "#000000", "opacity": 0.0}
+], {"cx": "50%", "cy": "100%", "r": "70%"})
+
+// 2. Setup Glowing Filters
+Draw.raw("<filter id=\"glow\" x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\"><feGaussianBlur stdDeviation=\"6\" result=\"blur\" /><feMerge><feMergeNode in=\"blur\" /><feMergeNode in=\"SourceGraphic\" /></feMerge></filter>")
+Draw.raw("<filter id=\"softGlow\" x=\"-80%\" y=\"-80%\" width=\"260%\" height=\"260%\"><feGaussianBlur stdDeviation=\"30\" result=\"blur\" /><feMerge><feMergeNode in=\"blur\" /><feMergeNode in=\"SourceGraphic\" /></feMerge></filter>")
+
+// 3. Inject CSS Animations
+Draw.style("
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1.0; }
+  }
+  @keyframes tailSwing {
+    0%, 100% { transform: rotate(-6deg); }
+    50% { transform: rotate(14deg); }
+  }
+  @keyframes steamFlow {
+    0% { transform: translateY(0) scaleX(1); opacity: 0; }
+    15% { opacity: 0.5; }
+    50% { transform: translateY(-15px) scaleX(1.2); opacity: 0.2; }
+    100% { transform: translateY(-35px) scaleX(0.7); opacity: 0; }
+  }
+  @keyframes screenPulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 0.95; }
+  }
+  .star-slow { animation: twinkle 4s infinite ease-in-out; }
+  .star-fast { animation: twinkle 2s infinite ease-in-out; }
+  .swinging-tail {
+    animation: tailSwing 3.5s infinite ease-in-out;
+    transform-origin: 210px 395px;
+  }
+  .steam-line {
+    animation: steamFlow 2.5s infinite linear;
+    transform-origin: bottom center;
+  }
+  .screen-glow-pulse {
+    animation: screenPulse 6s infinite ease-in-out;
+  }
+")
+
+print "Drawing Background Wall..."
+// Draw background wall
+Draw.rect(0, 0, 800, 800, "url(#bgGrad)")
+
+// Draw Window Area
+print "Drawing Window and Night Sky..."
+
+// Sky base
+Draw.rect(150, 80, 500, 340, "url(#skyGrad)")
+
+// Twinkling Stars
+let k = 0
+while k < 35 {
+  let sx = 150 + random() * 500
+  let sy = 80 + random() * 250
+  let sr = 0.5 + random() * 1.5
+  let sop = 0.3 + random() * 0.7
+  let sclass = "star-slow"
+  if random() > 0.5 {
+    sclass = "star-fast"
+  }
+  Draw.circle(sx, sy, sr, "#ffffff", {"opacity": sop, "class": sclass})
+  k = k + 1
+}
+
+// Crescent Moon
+Draw.circle(530, 140, 35, "#fef3c7", {"opacity": 0.1, "filter": "url(#softGlow)"}) // moon glow
+Draw.path("M 530 115 A 25 25 0 1 0 555 140 A 21 21 0 1 1 530 115", "#fefef0", {"filter": "url(#glow)"})
+
+// Distant Mountain/Hill Silhouettes
+Draw.path("M 150 420 Q 280 370, 410 420 Z", "#0d0f22", {"opacity": 0.5})
+Draw.path("M 380 420 Q 520 380, 650 420 Z", "#0a0c1b", {"opacity": 0.6})
+Draw.path("M 150 420 L 260 395 L 420 412 L 530 390 L 650 420 Z", "#04050d")
+
+// Window Glass Reflections
+Draw.polygon("220,80 320,80 180,420 150,420", "url(#glassReflect)")
+Draw.polygon("440,80 540,80 400,420 370,420", "url(#glassReflect)")
+
+// Soft Ambient Screen Glow on Wall & Window (Drawn behind the window frame and cat sill)
+Draw.ellipse(400, 495, 300, 220, "url(#screenGlowGrad)", {
+  "opacity": 0.85,
+  "class": "screen-glow-pulse"
+})
+
+// Window frame
+Draw.rect(150, 80, 500, 340, "none", {"stroke": "#0a0b12", "stroke-width": 16})
+
+// Inner frame mullions
+Draw.line(400, 80, 400, 420, "#0a0b12", {"stroke-width": 8})
+Draw.line(150, 240, 650, 240, "#0a0b12", {"stroke-width": 8})
+
+// Windowsill
+Draw.rect(130, 415, 540, 15, "#181d30") // Sill top
+Draw.rect(140, 430, 520, 10, "#0a0b12") // Sill bevel shadow
+
+// Draw Black Cat Silhouette on windowsill (Positioned at x: 210 to not be hidden by the laptop screen)
+print "Drawing Black Cat..."
+Draw.ellipse(210, 370, 22, 35, "#06070a") // Body
+Draw.circle(210, 325, 14, "#06070a") // Head
+Draw.polygon("199,318 200,305 207,314", "#06070a") // Left Ear
+Draw.polygon("221,318 220,305 213,314", "#06070a") // Right Ear
+
+// Main Tail body
+Draw.path("M 210 395 C 200 425, 230 445, 205 475", "none", {
+  "stroke": "#06070a",
+  "stroke-width": 6,
+  "stroke-linecap": "round",
+  "class": "swinging-tail"
+})
+
+// Cat Fur Rim Light (Cyan highlight reflecting screen glow on head & body)
+Draw.path("M 219,313 A 14,14 0 0,1 224,325", "none", {
+  "stroke": "#00f2fe",
+  "stroke-width": 1.5,
+  "opacity": 0.8,
+  "filter": "url(#glow)"
+})
+Draw.path("M 228,350 A 22,35 0 0,1 231,390", "none", {
+  "stroke": "#00f2fe",
+  "stroke-width": 2.0,
+  "opacity": 0.8,
+  "filter": "url(#glow)"
+})
+
+// Draw Desk in foreground
+print "Drawing Desk and Screen Ambient Glow..."
+Draw.rect(0, 520, 800, 280, "url(#deskGrad)")
+Draw.line(0, 520, 800, 520, "#1c2333", {"stroke-width": 2}) // Bevel top highlight
+
+// Light Cone reflection on Desk
+Draw.polygon("270,590 530,590 760,800 40,800", "url(#deskGlowGrad)", {
+  "opacity": 0.65,
+  "class": "screen-glow-pulse"
+})
+
+// Draw Laptop
+print "Drawing Laptop..."
+
+// Laptop lid (outer bezel)
+Draw.polygon("270,390 530,390 540,590 260,590", "#1e293b")
+
+// Screen display area (LCD glass)
+Draw.polygon("280,401 520,401 530,580 270,580", "#080c14")
+
+/*
+  Draw coding environment inside screen
+  Mock code lines (Left side)
+*/
+let lineY = 418
+Draw.line(292, lineY, 360, lineY, "#f43f5e", {"stroke-width": 4.5, "stroke-linecap": "round"}) // red
+lineY = lineY + 12
+Draw.line(292, lineY, 320, lineY, "#38bdf8", {"stroke-width": 4.5, "stroke-linecap": "round"}) // blue
+lineY = lineY + 12
+Draw.line(308, lineY, 390, lineY, "#34d399", {"stroke-width": 4.5, "stroke-linecap": "round"}) // green
+lineY = lineY + 12
+Draw.line(308, lineY, 350, lineY, "#fbbf24", {"stroke-width": 4.5, "stroke-linecap": "round"}) // yellow
+lineY = lineY + 12
+Draw.line(292, lineY, 375, lineY, "#c084fc", {"stroke-width": 4.5, "stroke-linecap": "round"}) // purple
+lineY = lineY + 12
+Draw.line(292, lineY, 310, lineY, "#38bdf8", {"stroke-width": 4.5, "stroke-linecap": "round"}) // blue
+lineY = lineY + 12
+Draw.line(308, lineY, 380, lineY, "#34d399", {"stroke-width": 4.5, "stroke-linecap": "round"}) // green
+lineY = lineY + 12
+Draw.line(324, lineY, 370, lineY, "#f43f5e", {"stroke-width": 4.5, "stroke-linecap": "round"}) // red
+lineY = lineY + 12
+Draw.line(292, lineY, 340, lineY, "#fbbf24", {"stroke-width": 4.5, "stroke-linecap": "round"}) // yellow
+
+// Mock Vector Artwork / Graph preview (Right side)
+
+// Sun & Mountain graphic
+Draw.circle(465, 450, 15, "#ec4899", {"opacity": 0.85}) // sun
+Draw.polygon("430,480 465,445 500,480", "#06b6d4", {"opacity": 0.9}) // cyan mountain
+Draw.polygon("455,480 480,455 515,480", "#8b5cf6", {"opacity": 0.8}) // purple mountain
+// Grid mesh under graphic
+Draw.line(425, 483, 515, 483, "#334155", {"stroke-width": 1})
+Draw.line(435, 488, 505, 488, "#334155", {"stroke-width": 1})
+Draw.line(445, 493, 495, 493, "#334155", {"stroke-width": 1})
+
+// Screen gloss overlay
+Draw.polygon("280,401 520,401 530,580 270,580", "url(#screenOverlayGrad)", {"opacity": 0.3})
+Draw.polygon("280,401 390,401 278,580 270,580", "url(#glassReflect)", {"opacity": 0.08}) // reflection streak
+
+// Laptop hinge
+Draw.rect(340, 587, 120, 6, "#0a0b12")
+
+// Keyboard base panel
+Draw.polygon("260,590 540,590 640,710 160,710", "url(#laptopMetalGrad)")
+
+// Keyboard keyboard recess
+Draw.polygon("275,598 525,598 550,660 250,660", "#0c0e17")
+
+// Backlit keys (using dashed line approximation for elegance)
+Draw.line(285, 606, 515, 606, "#00f2fe", {"stroke-width": 2.0, "stroke-dasharray": "8,3,10,3,6,3", "opacity": 0.65})
+Draw.line(278, 616, 522, 616, "#8b5cf6", {"stroke-width": 2.0, "stroke-dasharray": "12,3,8,3,12,3", "opacity": 0.65})
+Draw.line(271, 626, 529, 626, "#00f2fe", {"stroke-width": 2.0, "stroke-dasharray": "6,3,14,3,8,3", "opacity": 0.65})
+Draw.line(264, 636, 536, 636, "#8b5cf6", {"stroke-width": 2.0, "stroke-dasharray": "10,3,10,3,10,3", "opacity": 0.65})
+Draw.line(257, 646, 543, 646, "#00f2fe", {"stroke-width": 2.0, "stroke-dasharray": "14,3,6,3,14,3", "opacity": 0.65})
+Draw.line(330, 656, 470, 656, "#00f2fe", {"stroke-width": 2.0, "opacity": 0.8}) // spacebar
+
+// Trackpad
+Draw.polygon("360,670 440,670 445,695 355,695", "#172237", {"stroke": "#334155", "stroke-width": 1})
+
+// Laptop thickness/front-lip
+Draw.polygon("160,710 640,710 635,716 165,716", "#0f172a")
+
+// Soft shadow under laptop base
+Draw.polygon("150,716 650,716 630,724 170,724", "#020306", {"opacity": 0.85})
+
+// Draw Accessories
+print "Drawing Coffee Mug and Steam..."
+
+// Mug handle
+Draw.path("M 105 655 C 90 655, 90 680, 105 680", "none", {"stroke": "#1f2937", "stroke-width": 4.5, "stroke-linecap": "round"})
+
+// Mug body
+Draw.rect(105, 650, 30, 35, "#1f2937", {"rx": 4})
+
+// Mug rim
+Draw.ellipse(120, 650, 15, 5, "#374151")
+
+// Tea liquid glow
+Draw.ellipse(120, 650, 12, 3, "#f97316", {"opacity": 0.8, "filter": "url(#glow)"})
+
+// Animated Steam lines
+Draw.path("M 116 640 Q 110 625, 122 615 T 116 595", "none", {
+  "stroke": "#94a3b8",
+  "stroke-width": 2.0,
+  "stroke-linecap": "round",
+  "opacity": 0.4,
+  "class": "steam-line"
+})
+Draw.path("M 124 640 Q 130 625, 118 615 T 124 595", "none", {
+  "stroke": "#94a3b8",
+  "stroke-width": 2.0,
+  "stroke-linecap": "round",
+  "opacity": 0.4,
+  "class": "steam-line"
+})
+
+print "Drawing Desk Succulent Plant..."
+
+// Succulent pot shadow
+Draw.ellipse(680, 690, 16, 5, "#020306", {"opacity": 0.6})
+
+// Succulent pot
+Draw.polygon("665,650 695,650 690,690 670,690", "#2d3748")
+
+// Pot rim
+Draw.ellipse(680, 650, 15, 4, "#4a5568")
+
+// Leaves
+Draw.polygon("680,650 660,630 675,645", "#064e3b") // back leaf 1
+Draw.polygon("680,650 700,630 685,645", "#064e3b") // back leaf 2
+Draw.polygon("680,650 680,615 684,645", "#10b981") // center tall leaf
+Draw.polygon("680,650 668,622 674,644", "#059669") // middle leaf left
+Draw.polygon("680,650 692,622 686,644", "#34d399") // middle leaf right
+
+// Light highlight reflections on pot and leaves (from screen)
+Draw.line(665, 650, 670, 690, "#00f2fe", {"stroke-width": 1.5, "opacity": 0.5, "filter": "url(#glow)"})
+Draw.polygon("680,650 660,630 670,642", "#00f2fe", {"opacity": 0.35, "filter": "url(#glow)"})
+
+print "Saving SVG file..."
+
+// Save SVG file
+let dirpath = "playground/svgs"
+let filepath = "playground/svgs/laptop_late_night.svg"
+
+try {
+  let created = make_dir(dirpath)
+  if created {
+    print "Directory verified/created: " dirpath
+  }
+  let success = Draw.save_svg(filepath, 800, 800)
+  if success {
+    print "Successfully generated and saved SVG to: " filepath
+  } else {
+    print "Failed to save SVG"
+  }
+} catch (err) {
+  print "Error writing SVG file: " err
+}

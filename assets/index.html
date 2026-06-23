@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesi SVG Studio</title>
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Premium CSS Reset & Vars */
+    :root {
+      --bg-dark: #07070d;
+      --bg-card: rgba(17, 17, 34, 0.65);
+      --bg-editor: #0c0c16;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.5);
+      --text-main: #f4f4f6;
+      --text-muted: #94a3b8;
+      
+      /* Vibrant gradients */
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+      --accent-cyan: #06b6d4;
+      --accent-magenta: #d946ef;
+      --accent-indigo: #6366f1;
+      --success: #10b981;
+      --error: #f43f5e;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 45%);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header Styling */
+    header {
+      background: rgba(10, 10, 22, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      display: block;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .server-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
+
+    .status-dot.loading {
+      background-color: var(--warning);
+      box-shadow: 0 0 10px var(--warning);
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    /* Workspace Main Layout */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      height: calc(100vh - 61px);
+    }
+
+    /* Left Sidebar: Controls & Code Editor */
+    .sidebar {
+      background: rgba(10, 10, 20, 0.5);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 15, 30, 0.3);
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Preset & Sizing controls */
+    .controls-group {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(10, 10, 20, 0.2);
+    }
+
+    .control-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .control-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-field label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    .select-input, .number-input, .text-input {
+      background: #121222;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .select-input:focus, .number-input:focus, .text-input:focus {
+      border-color: var(--accent-indigo);
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Editor Section */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: var(--bg-editor);
+      min-height: 0;
+    }
+
+    .editor-wrapper {
+      flex: 1;
+      position: relative;
+      display: flex;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .line-numbers {
+      width: 48px;
+      padding: 16px 0;
+      text-align: right;
+      padding-right: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-right: 1px solid var(--border-color);
+      color: #4b5563;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    .code-textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #e2e8f0;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 16px;
+      resize: none;
+      outline: none;
+      tab-size: 2;
+      overflow-y: auto;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+
+
+    /* Render Button Row */
+    .action-row {
+      padding: 16px 20px;
+      background: rgba(10, 10, 20, 0.6);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .render-btn {
+      width: 100%;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+    }
+
+    .render-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(99, 102, 241, 0.5);
+    }
+
+    .render-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Right Main Panel: Preview & Canvas */
+    .preview-panel {
+      display: grid;
+      grid-template-rows: 1fr 180px;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #111124 0%, #080811 100%);
+    }
+
+    .canvas-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      overflow: hidden;
+    }
+
+    /* Transparent grid pattern card */
+    .canvas-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .checkerboard {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.02) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.02) 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      z-index: 1;
+    }
+
+    .svg-wrapper {
+      position: relative;
+      z-index: 2;
+      max-width: 95%;
+      max-height: 95%;
+      transition: transform 0.1s ease-out;
+      transform-origin: center center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .svg-wrapper svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Floating Viewport Controls */
+    .canvas-actions {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      transform: translateY(-1px);
+    }
+
+    .action-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Terminal logs at bottom */
+    .console-panel {
+      background: rgba(5, 5, 12, 0.95);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .console-header {
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .console-logs {
+      flex: 1;
+      padding: 12px 16px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-line {
+      white-space: pre-wrap;
+    }
+
+    .log-info { color: var(--text-muted); }
+    .log-success { color: var(--success); }
+    .log-error { color: var(--error); }
+    .log-stdout { color: #e2e8f0; }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(7, 7, 13, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(99, 102, 241, 0.2);
+      border-top-color: var(--accent-indigo);
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stop-color="#12132d" />
+            <stop offset="60%" stop-color="#070815" />
+            <stop offset="100%" stop-color="#030308" />
+          </radialGradient>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ec4899" />
+            <stop offset="50%" stop-color="#818cf8" />
+            <stop offset="100%" stop-color="#00f2fe" />
+          </linearGradient>
+          <linearGradient id="nodeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fbbf24" />
+            <stop offset="100%" stop-color="#f59e0b" />
+          </linearGradient>
+        </defs>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="12" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <filter id="nodeGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <rect x="16" y="16" width="480" height="480" fill="url(#bgGrad)" rx="100" stroke="#1f2245" stroke-width="4" />
+        <rect x="28" y="28" width="456" height="456" fill="none" rx="88" stroke="url(#logoGrad)" stroke-width="1.50" opacity="0.25" />
+        <line x1="100" y1="28" x2="140" y2="28" stroke="url(#logoGrad)" stroke-width="2" opacity="0.60" />
+        <line x1="28" y1="100" x2="28" y2="140" stroke="url(#logoGrad)" stroke-width="2" opacity="0.60" />
+        <line x1="372" y1="484" x2="412" y2="484" stroke="url(#logoGrad)" stroke-width="2" opacity="0.60" />
+        <line x1="484" y1="372" x2="484" y2="412" stroke="url(#logoGrad)" stroke-width="2" opacity="0.60" />
+        <path d="M 360 160 C 200 130, 140 250, 256 256 C 372 262, 312 382, 152 352" fill="none" stroke="url(#logoGrad)" stroke-width="28" stroke-linecap="round" filter="url(#glow)" opacity="0.40" />
+        <path d="M 360 160 C 200 130, 140 250, 256 256 C 372 262, 312 382, 152 352" fill="none" stroke="url(#logoGrad)" stroke-width="10" stroke-linecap="round" />
+        <path d="M 360 160 C 200 130, 140 250, 256 256 C 372 262, 312 382, 152 352" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.80" />
+        <line x1="360" y1="160" x2="220" y2="130" stroke="#ffffff" stroke-width="1.50" stroke-dasharray="3,4" opacity="0.50" />
+        <circle cx="220" cy="130" r="5" fill="#ffffff" stroke="#ec4899" stroke-width="2" filter="url(#nodeGlow)" />
+        <line x1="256" y1="256" x2="170" y2="230" stroke="#ffffff" stroke-width="1.50" stroke-dasharray="3,4" opacity="0.50" />
+        <circle cx="170" cy="230" r="5" fill="#ffffff" stroke="#818cf8" stroke-width="2" filter="url(#nodeGlow)" />
+        <line x1="256" y1="256" x2="342" y2="282" stroke="#ffffff" stroke-width="1.50" stroke-dasharray="3,4" opacity="0.50" />
+        <circle cx="342" cy="282" r="5" fill="#ffffff" stroke="#818cf8" stroke-width="2" filter="url(#nodeGlow)" />
+        <line x1="152" y1="352" x2="292" y2="382" stroke="#ffffff" stroke-width="1.50" stroke-dasharray="3,4" opacity="0.50" />
+        <circle cx="292" cy="382" r="5" fill="#ffffff" stroke="#00f2fe" stroke-width="2" filter="url(#nodeGlow)" />
+        <rect x="353" y="153" width="14" height="14" fill="#ffffff" stroke="#ec4899" stroke-width="3" rx="2" filter="url(#nodeGlow)" />
+        <rect x="249" y="249" width="14" height="14" fill="#ffffff" stroke="#818cf8" stroke-width="3" rx="2" filter="url(#nodeGlow)" />
+        <rect x="145" y="337" width="14" height="14" fill="#ffffff" stroke="#00f2fe" stroke-width="3" rx="2" filter="url(#nodeGlow)" />
+        <path d="M 360 160 L 395 190 L 415 170 L 400 145 Z" fill="url(#nodeGrad)" filter="url(#nodeGlow)" />
+        <polygon points="395,190 415,170 422,177 402,197" fill="#1e293b" />
+        <line x1="360" y1="160" x2="385" y2="181" stroke="#ffffff" stroke-width="1.50" opacity="0.90" />
+      </svg>
+      <div class="brand-title">Sesi SVG Studio</div>
+    </div>
+    <div class="server-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Ready</span>
+    </div>
+  </header>
+
+  <!-- Workspace Grid -->
+  <div class="workspace">
+    
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+          Editor Configuration
+        </div>
+      </div>
+
+      <!-- Dimension and Preset Selection -->
+      <div class="controls-group">
+        <div class="control-row">
+          <div class="control-field">
+            <label for="canvasPreset">Draw Preset</label>
+            <select id="canvasPreset" class="select-input">
+              <option value="neon_waves">Neon Sine Waves</option>
+              <option value="cyber_sunset">Synthwave Sunset</option>
+              <option value="geometric_mandala">Golden Mandala</option>
+              <option value="pulsing_core">Pulsing Star Core</option>
+              <option value="custom">Blank Canvas</option>
+            </select>
+          </div>
+        </div>
+        <div class="control-row">
+          <div class="control-field">
+            <label for="canvasWidth">Width (px)</label>
+            <input type="number" id="canvasWidth" class="number-input" value="800" min="100" max="2000">
+          </div>
+          <div class="control-field">
+            <label for="canvasHeight">Height (px)</label>
+            <input type="number" id="canvasHeight" class="number-input" value="600" min="100" max="2000">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sesi Code Editor -->
+      <div class="editor-container">
+        <div class="editor-wrapper">
+          <div class="line-numbers" id="lineNumbers">1</div>
+          <textarea id="codeEditor" class="code-textarea" spellcheck="false" autocomplete="off" placeholder="// Write Sesi drawing code here..."></textarea>
+        </div>
+      </div>
+
+
+
+      <!-- Action Row -->
+      <div class="action-row">
+        <button class="render-btn" id="renderBtn">
+          <svg style="width:18px;height:18px;fill:currentColor" viewBox="0 0 24 24"><path d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
+          Render Drawing
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Preview Panel -->
+    <div class="preview-panel">
+      <div class="canvas-container">
+        
+        <!-- Viewport controls -->
+        <div class="canvas-actions">
+          <button class="action-btn" id="zoomInBtn" title="Zoom In">
+            <svg viewBox="0 0 24 24"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/></svg>
+          </button>
+          <button class="action-btn" id="zoomOutBtn" title="Zoom Out">
+            <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
+          </button>
+          <button class="action-btn" id="resetZoomBtn" title="Reset View">
+            <svg viewBox="0 0 24 24"><path d="M12,4c-4.41,0-8,3.59-8,8s3.59,8,8,8,8-3.59,8-8-3.59-8-8-8zm0,14c-3.31,0-6-2.69-6-6s2.69-6,6-6,6,2.69,6,6-2.69,6-6,6z"/></svg>
+          </button>
+          <button class="action-btn" id="copySvgBtn" title="Copy SVG Code">
+            <svg viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg>
+          </button>
+          <button class="action-btn" id="downloadBtn" title="Download SVG File">
+            <svg viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/></svg>
+          </button>
+        </div>
+
+        <div class="canvas-card">
+          <div class="checkerboard"></div>
+          <div class="svg-wrapper" id="svgWrapper">
+            <div style="color:var(--text-muted);font-size:14px;z-index:10;text-align:center">
+              <svg style="width:48px;height:48px;margin-bottom:12px;opacity:0.3;fill:currentColor" viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,19H5V5H19V19M13.96,12.29L11.21,15.83L9.25,13.47L6.5,17H17.5L13.96,12.29Z"/></svg>
+              <div>Your SVG drawing will render here</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inner loading indicator -->
+        <div class="loading-overlay" id="loadingOverlay">
+          <div class="spinner"></div>
+          <div class="loading-text" id="loadingText">Running Sesi Script...</div>
+        </div>
+      </div>
+
+      <!-- Console logs -->
+      <div class="console-panel">
+        <div class="console-header">
+          <span>Execution Output Terminal</span>
+          <span style="cursor:pointer" id="clearConsoleBtn">Clear Logs</span>
+        </div>
+        <div class="console-logs" id="consoleLogs">
+          <div class="log-line log-info">Studio terminal ready. Select a preset or type Sesi code to begin drawing.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Constants & State
+    let zoomLevel = 1.0;
+    let currentSvgData = "";
+
+    const PRESETS = {
+      neon_waves: `allow "std/draw" in with Draw
+allow "std/math" in with Math
+
+Draw.rect(0, 0, 800, 600, "#09090e")
+
+// Set up linear gradient for the waves
+Draw.gradient("linear", "waveGrad", [
+  {"offset": "0%", "color": "#818cf8"},
+  {"offset": "50%", "color": "#ec4899"},
+  {"offset": "100%", "color": "#06b6d4"}
+], {"x1": "0%", "y1": "0%", "x2": "100%", "y2": "0%"})
+
+Draw.style("
+  .wave {
+    fill: none;
+    stroke: url(#waveGrad);
+    stroke-width: 2.5;
+    opacity: 0.75;
+  }
+")
+
+let waveCount = 8
+let steps = 60
+let i = 0
+
+while i < waveCount {
+  let points = ""
+  let amplitude = 40.0 + i * 12
+  let frequency = 0.015 - i * 0.001
+  let phase = i * 0.8
+  
+  for step = 0 to (steps + 1) {
+    let px = (step * 800.0) / steps
+    let py = 300.0 + Math.sin(px * frequency + phase) * amplitude
+    
+    // Construct point string
+    let coord = str(px) + "," + str(py)
+    if step == 0 {
+      points = coord
+    } else {
+      points = points + " " + coord
+    }
+  }
+  
+  Draw.polygon(points, "none", {"class": "wave", "opacity": str(1.0 - i * 0.12)})
+  i = i + 1
+}`,
+
+      cyber_sunset: `allow "std/draw" in with Draw
+allow "std/math" in with Math
+
+// Dark starry sky background
+Draw.rect(0, 0, 800, 600, "#0b0813")
+
+// Sun Gradient
+Draw.gradient("linear", "sunGrad", [
+  {"offset": "0%", "color": "#f43f5e"},
+  {"offset": "40%", "color": "#ec4899"},
+  {"offset": "100%", "color": "#eab308"}
+], {"x1": "0%", "y1": "0%", "x2": "0%", "y2": "100%"})
+
+// Sun
+Draw.circle(400, 300, 140, "url(#sunGrad)")
+
+// Draw perspective grid lines
+let y = 300
+while y <= 600 {
+  let progress = (y - 300) / 300.0
+  let strokeW = 1.0 + progress * 2.5
+  let opacity = progress * 0.8
+  Draw.line(0, y, 800, y, "#06b6d4", {"stroke-width": strokeW, "opacity": opacity})
+  y = y + 10 + Math.floor(progress * progress * 32)
+}
+
+let x = 0
+while x <= 800 {
+  Draw.line(x, 600, 400, 300, "#06b6d4", {"stroke-width": 1.5, "opacity": 0.3})
+  x = x + 80
+}
+
+// Silhouette Skyscrapers
+let skyline = [
+  {"x": 50, "w": 80, "h": 160},
+  {"x": 120, "w": 60, "h": 220},
+  {"x": 200, "w": 90, "h": 140},
+  {"x": 280, "w": 70, "h": 180},
+  {"x": 480, "w": 80, "h": 200},
+  {"x": 550, "w": 60, "h": 150},
+  {"x": 600, "w": 100, "h": 240},
+  {"x": 680, "w": 70, "h": 170}
+]
+
+for building in skyline {
+  let bx = building["x"]
+  let bw = building["w"]
+  let bh = building["h"]
+  let by = 300 - bh
+  Draw.rect(bx, by, bw, bh, "#0b0813", {"stroke": "#f43f5e", "stroke-width": 1.5})
+}`,
+
+      geometric_mandala: `allow "std/draw" in with Draw
+allow "std/math" in with Math
+
+Draw.rect(0, 0, 800, 600, "#080c10")
+
+Draw.gradient("linear", "goldGrad", [
+  {"offset": "0%", "color": "#eab308"},
+  {"offset": "50%", "color": "#f97316"},
+  {"offset": "100%", "color": "#eab308"}
+], {"x1": "0%", "y1": "0%", "x2": "100%", "y2": "100%"})
+
+Draw.style("
+  .ring {
+    fill: none;
+    stroke: url(#goldGrad);
+    stroke-width: 1;
+    opacity: 0.4;
+  }
+")
+
+let numCircles = 36
+let i = 0
+let r = 120.0
+let cx = 400.0
+let cy = 300.0
+
+while i < numCircles {
+  let angle = (i * 360.0) / numCircles
+  let rad = (angle * Math.PI) / 180.0
+  let ox = cx + Math.cos(rad) * 60.0
+  let oy = cy + Math.sin(rad) * 60.0
+  
+  Draw.circle(ox, oy, r, "none", {"class": "ring", "opacity": "0.32"})
+  i = i + 1
+}
+
+Draw.circle(cx, cy, 60, "none", {"stroke": "#eab308", "stroke-width": 2})
+Draw.circle(cx, cy, 10, "#f97316")`,
+
+      pulsing_core: `allow "std/draw" in with Draw
+
+Draw.rect(0, 0, 800, 600, "#09090b")
+
+Draw.gradient("radial", "glow", [
+  {"offset": "0%", "color": "#818cf8", "opacity": 1.0},
+  {"offset": "50%", "color": "#ec4899", "opacity": 0.5},
+  {"offset": "100%", "color": "#09090b", "opacity": 0.0}
+], {"cx": "50%", "cy": "50%", "r": "50%"})
+
+Draw.style("
+  @keyframes pulse {
+    0%, 100% { transform: scale(1.0); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1.0; }
+  }
+  .pulsing {
+    animation: pulse 4s infinite ease-in-out;
+    transform-origin: 400px 300px;
+  }
+")
+
+Draw.circle(400, 300, 250, "url(#glow)", {"class": "pulsing"})
+Draw.circle(400, 300, 60, "#ffffff", {"filter": "drop-shadow(0 0 15px #818cf8)"})
+
+let i = 0
+while i < 16 {
+  Draw.circle(400, 300, 90 + i * 15, "none", {"stroke": "#f472b6", "stroke-width": 1.5, "opacity": "0.25"})
+  i = i + 1
+}`,
+
+      custom: `allow "std/draw" in with Draw
+
+// Start drawing your custom SVG here
+Draw.rect(0, 0, 800, 600, "#111124")
+
+Draw.circle(400, 300, 100, "#e94560")
+Draw.text(400, 310, "Sesi Draw", 24, "#ffffff", {"text-anchor": "middle", "font-weight": "bold"})`
+    };
+
+    // DOM Elements
+    const editor = document.getElementById("codeEditor");
+    const lineNumbers = document.getElementById("lineNumbers");
+    const presetSelect = document.getElementById("canvasPreset");
+    const canvasWidth = document.getElementById("canvasWidth");
+    const canvasHeight = document.getElementById("canvasHeight");
+    const renderBtn = document.getElementById("renderBtn");
+    const consoleLogs = document.getElementById("consoleLogs");
+    const clearLogsBtn = document.getElementById("clearConsoleBtn");
+    const svgWrapper = document.getElementById("svgWrapper");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const loadingText = document.getElementById("loadingText");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+
+
+    // Line numbers sync
+    function updateLineNumbers() {
+      const lines = editor.value.split('\n');
+      const count = lines.length;
+      let numberString = '';
+      for (let i = 1; i <= count; i++) {
+        numberString += i + '<br>';
+      }
+      lineNumbers.innerHTML = numberString;
+    }
+
+    editor.addEventListener('input', updateLineNumbers);
+    editor.addEventListener('scroll', () => {
+      lineNumbers.scrollTop = editor.scrollTop;
+    });
+
+    // Preset selection loading
+    presetSelect.addEventListener('change', () => {
+      const val = presetSelect.value;
+      if (PRESETS[val]) {
+        editor.value = PRESETS[val];
+        updateLineNumbers();
+        logToTerminal("Loaded preset: " + presetSelect.options[presetSelect.selectedIndex].text, "info");
+      }
+    });
+
+    // Terminal Logging
+    function logToTerminal(message, type = "stdout") {
+      const line = document.createElement("div");
+      line.className = `log-line log-${type}`;
+      
+      const time = new Date().toLocaleTimeString();
+      line.innerHTML = `[${time}] ${message}`;
+      
+      consoleLogs.appendChild(line);
+      consoleLogs.scrollTop = consoleLogs.scrollHeight;
+    }
+
+    clearLogsBtn.addEventListener('click', () => {
+      consoleLogs.innerHTML = "";
+    });
+
+    // Zoom and Pan Controls
+    document.getElementById("zoomInBtn").addEventListener('click', () => {
+      zoomLevel += 0.15;
+      svgWrapper.style.transform = `scale(${zoomLevel})`;
+    });
+
+    document.getElementById("zoomOutBtn").addEventListener('click', () => {
+      if (zoomLevel > 0.3) {
+        zoomLevel -= 0.15;
+        svgWrapper.style.transform = `scale(${zoomLevel})`;
+      }
+    });
+
+    document.getElementById("resetZoomBtn").addEventListener('click', () => {
+      zoomLevel = 1.0;
+      svgWrapper.style.transform = `scale(1.0)`;
+    });
+
+    // Copy SVG String
+    document.getElementById("copySvgBtn").addEventListener('click', () => {
+      if (!currentSvgData) {
+        logToTerminal("No rendered SVG available to copy.", "error");
+        return;
+      }
+      navigator.clipboard.writeText(currentSvgData)
+        .then(() => logToTerminal("SVG XML copied to clipboard!", "success"))
+        .catch(err => logToTerminal("Failed to copy SVG: " + err, "error"));
+    });
+
+    // Download SVG
+    document.getElementById("downloadBtn").addEventListener('click', () => {
+      if (!currentSvgData) {
+        logToTerminal("No rendered SVG available to download.", "error");
+        return;
+      }
+      const blob = new Blob([currentSvgData], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sesi_drawing.svg";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      logToTerminal("Downloaded SVG file: sesi_drawing.svg", "success");
+    });
+
+    // Render Request Execution
+    function renderSvg() {
+      const code = editor.value.trim();
+      if (!code) {
+        logToTerminal("Editor is empty. Type some drawing code first.", "error");
+        return;
+      }
+
+      // Show spinner
+      loadingOverlay.style.display = "flex";
+      loadingText.textContent = "Compiling & executing Sesi script...";
+      statusDot.className = "status-dot loading";
+      statusText.textContent = "Running...";
+
+      logToTerminal("Sending code to Sesi renderer...", "info");
+
+      fetch("/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: code,
+          width: parseInt(canvasWidth.value) || 800,
+          height: parseInt(canvasHeight.value) || 600
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        loadingOverlay.style.display = "none";
+        statusDot.className = "status-dot";
+        statusText.textContent = "Ready";
+
+        if (data.error) {
+          logToTerminal("Execution Error:\n" + data.error, "error");
+          if (data.output) {
+            logToTerminal("Stdout context:\n" + data.output, "stdout");
+          }
+        } else if (data.svg) {
+          currentSvgData = data.svg;
+          svgWrapper.innerHTML = data.svg;
+          logToTerminal("Sesi code compiled and executed successfully!", "success");
+          if (data.output) {
+            logToTerminal("Script stdout:\n" + data.output, "stdout");
+          }
+        } else {
+          logToTerminal("Empty server response.", "warning");
+        }
+      })
+      .catch(err => {
+        loadingOverlay.style.display = "none";
+        statusDot.className = "status-dot";
+        statusText.textContent = "Error";
+        logToTerminal("Network or Server error: " + err.message, "error");
+      });
+    }
+
+    renderBtn.addEventListener('click', renderSvg);
+
+
+
+    // Init
+    editor.value = PRESETS.neon_waves;
+    updateLineNumbers();
+  </script>
+</body>
+</html>

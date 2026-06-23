@@ -1,0 +1,135 @@
+let PORT = 8080
+
+async fn handleRequest(req) {
+  print "Request:" req.method req.path
+  
+  if req.method == "GET" && req.path == "/" {
+    try {
+      let html = read_file("assets/index.html")
+      return {
+        "status": 200,
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "body": html
+      }
+    } catch (err) {
+      return {
+        "status": 500,
+        "body": "Error loading svg_studio.html: " + str(err)
+      }
+    }
+  }
+
+  if req.method == "POST" && req.path == "/render" {
+    try {
+      let payload = from_json(req.body)
+      let code = payload["code"]
+      let width = payload["width"]
+      let height = payload["height"]
+      
+      let finalCode = code
+      if !contains(code, "std/draw") {
+        finalCode = "allow \"std/draw\" in with Draw\n" + finalCode
+      }
+      
+      // Append render block to extract the SVG from standard output
+      finalCode = finalCode + "\n\ntry {\n  print \"===SVG_START===\"\n  print Draw.render(" + str(width) + ", " + str(height) + ")\n  print \"===SVG_END===\"\n} catch (err) {\n  print \"Render failed:\" err\n}\n"
+      
+      let tempFile = "temp_draw.sesi"
+      write_file(tempFile, finalCode)
+      
+      let out = exec("node ./bin/sesi.js temp_draw.sesi -l")
+      
+      let svg = ""
+      let error = null
+      
+      if contains(out, "===SVG_START===") && contains(out, "===SVG_END===") {
+        let parts = split(out, "===SVG_START===")
+        if len(parts) > 1 {
+          let innerParts = split(parts[1], "===SVG_END===")
+          if len(innerParts) > 0 {
+            svg = trim(innerParts[0])
+          }
+        }
+      } else {
+        error = "Output did not contain valid SVG markers. Execution output:\n" + out
+      }
+      
+      if contains(out, "Error at line") || contains(out, "Exception") || contains(out, "Undefined") {
+        error = out
+      }
+      
+      let cleanOut = out
+      if contains(cleanOut, "===SVG_START===") {
+        let parts = split(cleanOut, "===SVG_START===")
+        let endParts = split(cleanOut, "===SVG_END===")
+        let before = parts[0]
+        let after = ""
+        if len(endParts) > 1 {
+          after = endParts[1]
+        }
+        cleanOut = before + "[SVG XML Rendered]" + after
+      }
+      
+      if error != null {
+        return {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": to_json({
+            "error": error,
+            "output": cleanOut
+          })
+        }
+      }
+      
+      return {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": to_json({
+          "svg": svg,
+          "output": cleanOut
+        })
+      }
+    } catch (err) {
+      return {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": to_json({
+          "error": "Failed to run Sesi script: " + str(err)
+        })
+      }
+    }
+  }
+  
+
+  
+  return {
+    "status": 404,
+    "body": "Not found"
+  }
+}
+
+print "=========================================================="
+print "🚀 Sesi SVG Studio Server is starting..."
+print "Press Ctrl+C to stop the server."
+print "=========================================================="
+
+let server = listen(PORT, handleRequest)
+try {
+  if contains(exec("uname"), "Darwin") {
+    exec("open http://localhost:" + PORT)
+  } else if contains(exec("uname"), "Windows") {
+    exec("start http://localhost:" + PORT)
+  } else {
+    exec("xdg-open http://localhost:" + PORT)
+  }
+} catch (e) {
+  print "Error opening browser: " e
+}

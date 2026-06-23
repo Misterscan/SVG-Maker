@@ -1,0 +1,58 @@
+/* 
+  Sesi Starter Script
+  A basic playground to experiment with Sesi's syntax, variables, loops, and functions.
+
+  Usage: 
+    sesi starter.sesi [your_name]
+*/
+
+// 1. Variables and Types
+let language = "Sesi"
+let version = "1.5"
+let features = ["Reasoning", "Embedded DB", "SVG Drawing", "Audio Synthesis"]
+
+print "Welcome to" language "version" version "!"
+print "----------------------------------------"
+
+// 2. Command-Line Arguments & Interactive Input
+let userName = ""
+if len(args) > 0 {
+  userName = args[0]
+} else {
+  userName = input("Please enter your name to begin: ")
+}
+
+print "Hello," userName "! Let's explore some Sesi syntax."
+print ""
+
+// 3. Functions
+fn greet_user(name: string, lang: string) -> string {
+  let upperName = to_upper(name)
+  return "GREETINGS, " + upperName + "! YOU ARE NOW CODING IN " + to_upper(lang) + "."
+}
+
+let greeting = greet_user(userName, language)
+print greeting
+print ""
+
+// 4. Loops and Collections
+print "Here are some cool features of Sesi:"
+for feature in features {
+  print " - " feature
+}
+print ""
+
+// 5. Numeric Ranges (starts at 1, goes up to but excluding 4)
+print "Counting up to 3:"
+for i = 1 to 4 {
+  print "Count:" i
+}
+print ""
+
+// 6. Prompt Blocks (Sesi's unique string composition)
+let topic = "Sesi Programming"
+prompt welcomeMessage {"Topic: " topic "
+User: " userName "
+Status: Ready for experimentation!"}
+
+print welcomeMessage
