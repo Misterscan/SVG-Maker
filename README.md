@@ -1,4 +1,15 @@
-# SVG Maker
+<p align="center">
+  <img src="assets/studio_logo.svg" width="128" height="128" alt="Sesi SVG Studio Logo" />
+</p>
+
+<h1 align="center">Sesi SVG Studio</h1>
+
+<p align="center">
+  <img src="assets/badge_built_with.svg" alt="Built With Sesi" height="25" />
+  <img src="assets/badge_library.svg" alt="Library std/draw" height="25" />
+  <img src="assets/badge_studio.svg" alt="SVG Studio v1.0.0" height="25" />
+  <img src="assets/badge_license.svg" alt="MIT License" height="25" />
+</p>
 
 A workspace for drawing and exporting SVGs using the [Sesi](https://github.com/misterscan/sesi) programming language and its built-in `std/draw` library.
 
@@ -28,8 +39,6 @@ An interactive browser-based editor for writing Sesi drawing code and previewing
 ```bash
 npm run web
 ```
-
-Then open **[http://localhost:8080](http://localhost:8080)** in your browser.
 
 ### Features
 

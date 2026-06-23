@@ -1,0 +1,10 @@
+<svg width="176" height="32" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="176" height="32" fill="#111827" rx="8" ry="8" />
+  <rect x="0" y="0" width="104" height="32" fill="#374151" rx="8" ry="8" />
+  <rect x="96" y="0" width="8" height="32" fill="#374151" />
+  <rect x="104" y="0" width="72" height="32" fill="#00f2fe" rx="8" ry="8" />
+  <rect x="104" y="0" width="8" height="32" fill="#00f2fe" />
+  <rect x="0" y="0" width="176" height="15" fill="#ffffff" opacity="0.08" rx="8" ry="8" />
+  <text x="12" y="21" font-size="14" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="600">SVG Studio</text>
+  <text x="116" y="21" font-size="14" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="700">v1.0.0</text>
+</svg>
