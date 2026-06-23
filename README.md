@@ -2,7 +2,7 @@
   <img src="assets/studio_logo.svg" width="128" height="128" alt="Sesi SVG Studio Logo" />
 </p>
 
-<h1 align="center">Sesi SVG Studio</h1>
+<h1 align="center">SVG Maker</h1>
 
 <p align="center">
   <img src="assets/badge_built_with.svg" alt="Built With Sesi" height="25" />
