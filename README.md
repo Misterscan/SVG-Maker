@@ -22,6 +22,7 @@ Includes **Sesi SVG Studio** — a local web app for writing, previewing, and ex
 ### Prerequisites
 
 - [Node.js](https://nodejs.org) v18+
+- [Sesi](https://github.com/misterscan/sesi) v1.5.6+ (for global `sesi` command instead of npm)
 - Dependencies installed:
 
 ```bash
@@ -38,6 +39,12 @@ An interactive browser-based editor for writing Sesi drawing code and previewing
 
 ```bash
 npm run web
+```
+
+### Launch the Studio (alternative)
+
+```bash
+sesi -l ui.sesi
 ```
 
 ### Features
@@ -65,18 +72,21 @@ To run any `.sesi` script from the command line:
 
 ```bash
 npm run sesi <file>.sesi
+sesi <file>.sesi
 ```
 
 For scripts that use external libraries, file I/O or `exec()` (like the Web server):
 
 ```bash
 npm run local <file>.sesi
+sesi -l <file>.sesi
 ```
 
 Inline code evaluation (useful for quick syntax checks):
 
 ```bash
 npm run eval "print 'Hello from Sesi'"
+sesi -e "print 'Hello from Sesi'"
 ```
 
 ---
@@ -153,9 +163,10 @@ Draw.clear()                         // resets the draw buffer
 
 ## Other Commands
 
-| Command                  | Description               |
-| ------------------------ | ------------------------- |
-| `npm run eval "<code>"`  | Evaluate Sesi code inline |
-| `npm run lint`           | Run the Sesi linter       |
-| `npm run encrypt <file>` | Encrypt a `.sesi` file    |
-| `npm run decrypt <file>` | Decrypt a `.sesi` file    |
+| Command                                            | Description            |
+| -------------------------------------------------- | ---------------------- |
+| `npm run lint` or `sesi bin/lint.sesi <file>.sesi` | Run the Sesi linter    |
+| `npm run encrypt <file>` or `sesi -enc <file>`     | Encrypt a `.sesi` file |
+| `npm run decrypt <file>` or `sesi -dec <file>`     | Decrypt a `.sesi` file |
+
+_Make sure you have your `SESI_PASSWORD` environment variable set for encrypt and decrypt commands without needed the `-p` flag._
