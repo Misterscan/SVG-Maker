@@ -2,7 +2,7 @@
   "name": "svg-maker",
   "version": "1.0.0",
   "description": "A workspace for generated SVGs using Sesi built-in functions from the std/draw library.",
-  "main": "dist/index.js",
+  "main": "node_modules/@misterscan/sesi/dist/index.js",
   "bin": {
     "sesi": "bin/sesi.js"
   },
