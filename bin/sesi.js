@@ -13,14 +13,14 @@ if (typeof globalThis.File === 'undefined') {
   };
 }
 
-const { runSesiFile, runSesi } = require('../dist/index.js');
+const { runSesiFile, runSesi } = require('../node_modules/@misterscan/sesi/dist/index.js');
 const fs = require('fs');
 const path = require('path');
 
 const args = process.argv.slice(2);
 
 const argsHeader = `
-Sesi Programming Language v1.5.7
+Sesi Programming Language v1.6.3
 
 Usage:
   sesi <file> [options] <args>  Run a Sesi program
@@ -36,8 +36,10 @@ Usage:
   sesi -c <file>         Check syntax of a file
   sesi --ast <file>      Show the AST of a file
   sesi --tokens <file>   Show the tokens of a file
-  sesi -b <file>         Run via bytecode VM
+  sesi -t <file>         Run via legacy tree-walking interpreter
   sesi -bd <file>        Print disassembled bytecode
+  sesi install           Install all dependencies listed in sesi.json
+  sesi install <pkg>     Install a third-party package (e.g. github:owner/repo)
 
   Options:
   -v --version           Show version
@@ -51,15 +53,29 @@ Usage:
   -v, --version          Show version
   -h, --help             Show this help
   -r, --raw              Show the raw parser output
+  --cli                  Run script in standard CLI mode without the TUI dashboard
   -s, --studio           Launch Sesi Studio IDE
   -c, --check, --dry     Perform a dry-run syntax check without executing
   --ast                  Show the AST
   --tokens               Show the tokens
-  -b, --byte             Run via bytecode VM (experimental)
+  -t, --tree-walker      Run via legacy tree-walking interpreter fallback
   -bd, --byte-dump       Print disassembled bytecode and exit
+  -i, install            Install all dependencies listed in sesi.json
+
 `;
 
 function parseArgs(args) {
+  if (args[0] === 'install' || args[0] === 'i') {
+    return {
+      install: true,
+      installPackage: args[1],
+      sesiOptions: {
+        safeMode: false,
+        allowedPaths: [process.cwd()]
+      }
+    };
+  }
+
   const options = {
     file: null,
     eval: null,
@@ -74,6 +90,7 @@ function parseArgs(args) {
       safeMode: true,
       allowedPaths: [process.cwd()],
       raw: false,
+      cli: false,
       args: []
     }
   };
@@ -83,7 +100,7 @@ function parseArgs(args) {
     const isHelpFlag = arg === '--help' || arg === '-help' || arg === '-h';
 
     if (arg === '-v' || arg === '--version') {
-      console.log('Sesi v1.5.7');
+      console.log('Sesi v1.6.3');
       process.exit(0);
     } else if (isHelpFlag && i === 0 && !options.file && !options.eval) {
       if (args[i + 1] && !args[i + 1].startsWith('-')) {
@@ -117,16 +134,18 @@ function parseArgs(args) {
       options.file = arg;
     } else if (arg == '-r' || arg == '--raw') {
       options.sesiOptions.raw = true;
+    } else if (arg == '--cli') {
+      options.sesiOptions.cli = true;
     } else if (arg == '--ast') {
       options.sesiOptions.ast = true;
     } else if (arg == '--tokens') {
       options.sesiOptions.tokens = true;
     } else if (arg === '-c' || arg === '--check' || arg === '--dry') {
       options.sesiOptions.dry = true;
-    } else if (arg === '-b' || arg === '--byte') {
-      options.sesiOptions.bytecode = true;
     } else if (arg === '-bd' || arg === '--byte-dump') {
       options.sesiOptions.bytecodeDump = true;
+    } else if (arg === '-t' || arg === '--tree-walker') {
+      options.sesiOptions.treeWalker = true;
     } else if (arg === '--repl') {
       options.repl = true;
     } else if (arg === '--studio' || arg === '-s') {
@@ -150,60 +169,146 @@ function parseArgs(args) {
 }
 
 async function startRepl() {
-  const readline = require('readline');
+  const blessed = require('blessed');
   const { Lexer, Parser, Interpreter } = require('../dist/index.js');
-
-  const interpreter = new Interpreter(process.cwd(), parsed.sesiOptions);
-
-  console.log('Sesi Interactive REPL (v1.5.7)');
-  console.log('Type ".exit" or press Ctrl+C to exit.');
-
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: 'sesi> '
+  
+  const screen = blessed.screen({
+    smartCSR: true,
+    title: 'Sesi',
+    autoPadding: true,
+    resizeTimeout: 100
   });
 
-  rl.prompt();
-
-  rl.on('line', async (line) => {
-    const trimmed = line.trim();
-    if (trimmed === '.exit') {
-      rl.close();
-      return;
+  const outputBox = blessed.log({
+    parent: screen,
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%-3',
+    border: { type: 'line' },
+    style: {
+      fg: 'white',
+      border: { fg: 'cyan' }
+    },
+    label: ' Sesi Interactive Terminal (v1.6.3) ',
+    scrollable: true,
+    alwaysScroll: true,
+    mouse: true,
+    keys: true,
+    tags: true,
+    scrollbar: {
+      ch: ' ',
+      track: { bg: 'cyan' },
+      style: { inverse: true }
     }
+  });
+
+  const inputBox = blessed.textbox({
+    parent: screen,
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: 3,
+    border: { type: 'line' },
+    style: {
+      fg: 'green',
+      border: { fg: 'cyan' }
+    },
+    label: ' sesi> ',
+    inputOnFocus: true,
+    tags: true
+  });
+
+  screen.key(['escape', 'C-c'], () => {
+    return process.exit(0);
+  });
+
+  screen.key(['pageup'], () => {
+    outputBox.scroll(-10);
+    screen.render();
+  });
+
+  screen.key(['pagedown'], () => {
+    outputBox.scroll(10);
+    screen.render();
+  });
+
+  screen.on('resize', () => {
+    screen.render();
+  });
+
+  const interpreter = new Interpreter(process.cwd());
+
+  // Intercept console.log to output to the blessed log box instead
+  const originalLog = console.log;
+  console.log = (...args) => {
+    outputBox.log(args.join(' '));
+    screen.render();
+  };
+
+  globalThis.sesiTerminalClearHandler = () => {
+    outputBox.setContent('');
+    screen.render();
+  };
+
+  globalThis.sesiTerminalCursorHandler = (x, y) => {
+    // For TUI log box, cursor movement is ignored safely
+  };
+
+  inputBox.on('submit', async (text) => {
+    const trimmed = text.trim();
+    if (trimmed === '.exit') {
+      return process.exit(0);
+    }
+    
+    inputBox.clearValue();
+    inputBox.focus();
+    
     if (trimmed) {
+      outputBox.log(`{cyan-fg}sesi>{/cyan-fg} ${trimmed}`);
       try {
-        const lexer = new Lexer(line);
+        const lexer = new Lexer(trimmed);
         const tokens = lexer.scanTokens();
         const parser = new Parser(tokens);
+
         const program = parser.parse();
 
         for (const statement of program.statements) {
           if (statement.type === 'ExpressionStatement') {
             const val = await interpreter.evaluateExpression(statement.expression);
             if (val !== null && val !== undefined) {
-              console.log(val);
+              outputBox.log(`{green-fg}=> ${JSON.stringify(val)}{/green-fg}`);
             }
           } else {
             await interpreter.interpret({ type: 'Program', statements: [statement] });
           }
         }
-      } catch (err) {
-        console.error('Error:', err.message);
+      } catch (error) {
+        outputBox.log(`{red-fg}Error: ${error.message}{/red-fg}`);
       }
     }
-    rl.prompt();
+    screen.render();
   });
 
-  rl.on('close', () => {
-    process.exit(0);
-  });
+  outputBox.log('{bold}Welcome to Sesi!{/bold} Type code and press Enter.');
+  outputBox.log('Type {cyan-fg}.exit{/cyan-fg} or press {cyan-fg}ESC{/cyan-fg} to quit.');
+  
+  inputBox.focus();
+  screen.render();
 }
 
 const parsed = parseArgs(args);
 
 async function main() {
+  if (parsed.install) {
+    const { runInstall } = require('../dist/index.js');
+    await runInstall(parsed.installPackage).catch((error) => {
+      console.error('Package installation failed:', error.message);
+      process.exit(1);
+    });
+    return;
+  }
+
   if (parsed.studio) {
     const studioServerPath = path.join(__dirname, '..', 'sesi-studio', 'studio.sesi');
     if (fs.existsSync(studioServerPath)) {
@@ -211,7 +316,8 @@ async function main() {
       const studioOptions = {
         ...parsed.sesiOptions,
         safeMode: false,
-        allowLocalFs: true
+        allowLocalFs: true,
+        treeWalker: true
       };
       await runSesiFile(studioServerPath, studioOptions).catch((error) => {
         console.error('Fatal error in Sesi Studio:', error.message);
@@ -308,10 +414,137 @@ async function main() {
       console.error(`Error: File not found: ${parsed.file}`);
       process.exit(1);
     }
-    await runSesiFile(parsed.file, parsed.sesiOptions).catch((error) => {
-      console.error('Fatal error:', error.message);
-      process.exit(1);
+    if (parsed.sesiOptions.cli || parsed.sesiOptions.dry) {
+      // Execute without blessed TUI (raw terminal CLI mode)
+      await runSesiFile(parsed.file, parsed.sesiOptions).catch((error) => {
+        console.error('Fatal error:', error.message);
+        process.exit(1);
+      });
+      return;
+    }
+    
+    // START CUSTOM TERMINAL INTERFACE FOR SCRIPT EXECUTION
+    const blessed = require('blessed');
+    const screen = blessed.screen({
+      smartCSR: true,
+      title: `Sesi Execution: ${parsed.file}`,
+      autoPadding: true,
+      resizeTimeout: 100
     });
+
+    const outputBox = blessed.log({
+      parent: screen,
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%-3',
+      border: { type: 'line' },
+      style: { fg: 'white', border: { fg: 'cyan' } },
+      label: ` ⚡ Sesi Script Terminal: ${parsed.file} `,
+      scrollable: true,
+      alwaysScroll: true,
+      mouse: true,
+      keys: true,
+      tags: true,
+      scrollbar: { ch: ' ', track: { bg: 'cyan' }, style: { inverse: true } }
+    });
+
+    const statusBox = blessed.box({
+      parent: screen,
+      bottom: 0,
+      left: 0,
+      width: '100%',
+      height: 3,
+      border: { type: 'line' },
+      style: { fg: 'green', border: { fg: 'cyan' } },
+      content: ' Status: Running... | Press ESC to exit ',
+      tags: true
+    });
+
+    const inputBox = blessed.textbox({
+      parent: screen,
+      bottom: 0,
+      left: 0,
+      width: '100%',
+      height: 3,
+      border: { type: 'line' },
+      style: { fg: 'yellow', border: { fg: 'cyan' } },
+      hidden: true,
+      inputOnFocus: true,
+      tags: true
+    });
+
+    screen.key(['escape', 'C-c', 'q'], () => process.exit(0));
+
+    screen.key(['pageup'], () => {
+      outputBox.scroll(-10);
+      screen.render();
+    });
+
+    screen.key(['pagedown'], () => {
+      outputBox.scroll(10);
+      screen.render();
+    });
+
+    screen.on('resize', () => {
+      screen.render();
+    });
+
+    // Handle input() requests from the Sesi script natively
+    globalThis.sesiInputHandler = (promptText) => {
+      return new Promise((resolve) => {
+        statusBox.hide();
+        inputBox.setLabel(` ${promptText} `);
+        inputBox.show();
+        inputBox.focus();
+        screen.render();
+        
+        inputBox.once('submit', (text) => {
+          const val = text.trim();
+          inputBox.clearValue();
+          inputBox.hide();
+          statusBox.show();
+          screen.render();
+          outputBox.log(`{cyan-fg}${promptText}{/cyan-fg} ${val}`);
+          resolve(val);
+        });
+      });
+    };
+
+    // Intercept Sesi's print output natively
+    const originalLog = console.log;
+    const originalError = console.error;
+    console.log = (...args) => {
+      outputBox.log(args.join(' '));
+      screen.render();
+    };
+    console.error = (...args) => {
+      outputBox.log(`{red-fg}${args.join(' ')}{/red-fg}`);
+      screen.render();
+    };
+
+    globalThis.sesiTerminalClearHandler = () => {
+      outputBox.setContent('');
+      screen.render();
+    };
+
+    globalThis.sesiTerminalCursorHandler = (x, y) => {
+      // For TUI log box, cursor movement is ignored safely
+    };
+
+    screen.render();
+
+    await runSesiFile(parsed.file, parsed.sesiOptions).then(() => {
+      statusBox.setContent(' Status: Script Completed Successfully | Press ESC to exit ');
+      statusBox.style.fg = 'blue';
+      screen.render();
+    }).catch((error) => {
+      statusBox.setContent(' Status: Script Failed | Press ESC to exit ');
+      statusBox.style.fg = 'red';
+      console.error('Fatal error:', error.message);
+      screen.render();
+    });
+    // END CUSTOM TERMINAL INTERFACE
   } else if (parsed.raw) {
     const content = fs.readFileSync(parsed.file, 'utf-8');
     await runSesi(content, process.cwd(), { ...parsed.sesiOptions, raw: true }).catch((error) => {
