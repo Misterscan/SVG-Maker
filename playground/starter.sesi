@@ -3,12 +3,12 @@
   A basic playground to experiment with Sesi's syntax, variables, loops, and functions.
 
   Usage: 
-    sesi starter.sesi [your_name]
+    sesi playground/starter.sesi [your_name]
 */
 
 // 1. Variables and Types
 let language = "Sesi"
-let version = "1.5"
+let version = "1.6.4"
 let features = ["Reasoning", "Embedded DB", "SVG Drawing", "Audio Synthesis"]
 
 print "Welcome to" language "version" version "!"

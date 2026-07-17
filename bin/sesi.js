@@ -20,7 +20,7 @@ const path = require('path');
 const args = process.argv.slice(2);
 
 const argsHeader = `
-Sesi Programming Language v1.6.3
+Sesi Programming Language v1.6.4
 
 Usage:
   sesi <file> [options] <args>  Run a Sesi program
@@ -87,7 +87,7 @@ function parseArgs(args) {
     repl: false,
     studio: false,
     sesiOptions: {
-      safeMode: true,
+      safeMode: process.env.SESI_SAFE_MODE !== 'false',
       allowedPaths: [process.cwd()],
       raw: false,
       cli: false,
@@ -100,7 +100,7 @@ function parseArgs(args) {
     const isHelpFlag = arg === '--help' || arg === '-help' || arg === '-h';
 
     if (arg === '-v' || arg === '--version') {
-      console.log('Sesi v1.6.3');
+      console.log('Sesi v1.6.4');
       process.exit(0);
     } else if (isHelpFlag && i === 0 && !options.file && !options.eval) {
       if (args[i + 1] && !args[i + 1].startsWith('-')) {
@@ -171,7 +171,7 @@ function parseArgs(args) {
 async function startRepl() {
   const blessed = require('blessed');
   const { Lexer, Parser, Interpreter } = require('../dist/index.js');
-  
+
   const screen = blessed.screen({
     smartCSR: true,
     title: 'Sesi',
@@ -190,7 +190,7 @@ async function startRepl() {
       fg: 'white',
       border: { fg: 'cyan' }
     },
-    label: ' Sesi Interactive Terminal (v1.6.3) ',
+    label: ' Sesi Interactive Terminal (v1.6.4) ',
     scrollable: true,
     alwaysScroll: true,
     mouse: true,
@@ -260,10 +260,10 @@ async function startRepl() {
     if (trimmed === '.exit') {
       return process.exit(0);
     }
-    
+
     inputBox.clearValue();
     inputBox.focus();
-    
+
     if (trimmed) {
       outputBox.log(`{cyan-fg}sesi>{/cyan-fg} ${trimmed}`);
       try {
@@ -292,7 +292,7 @@ async function startRepl() {
 
   outputBox.log('{bold}Welcome to Sesi!{/bold} Type code and press Enter.');
   outputBox.log('Type {cyan-fg}.exit{/cyan-fg} or press {cyan-fg}ESC{/cyan-fg} to quit.');
-  
+
   inputBox.focus();
   screen.render();
 }
@@ -422,7 +422,7 @@ async function main() {
       });
       return;
     }
-    
+
     // START CUSTOM TERMINAL INTERFACE FOR SCRIPT EXECUTION
     const blessed = require('blessed');
     const screen = blessed.screen({
@@ -498,7 +498,7 @@ async function main() {
         inputBox.show();
         inputBox.focus();
         screen.render();
-        
+
         inputBox.once('submit', (text) => {
           const val = text.trim();
           inputBox.clearValue();

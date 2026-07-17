@@ -11,20 +11,20 @@
   "private": true,
   "scripts": {
     "sesi": "node bin/sesi.js",
-    "local": "node bin/sesi.js -l",
-    "start": "node bin/sesi.js -l main.sesi",
-    "web": "node bin/sesi.js -l ui.sesi",
-    "eval": "node bin/sesi.js -e",
-    "help": "node bin/sesi.js -h",
-    "lint": "node bin/sesi.js bin/lint.sesi",
-    "encrypt": "node bin/sesi.js -enc",
-    "decrypt": "node bin/sesi.js -dec"
+    "local": "node bin/sesi.js --cli -l",
+    "start": "node bin/sesi.js --cli -l main.sesi",
+    "web": "node bin/sesi.js --cli -l ui.sesi",
+    "eval": "node bin/sesi.js --cli -e",
+    "help": "node bin/sesi.js --cli -h",
+    "lint": "node bin/sesi.js --cli bin/lint.sesi",
+    "encrypt": "node bin/sesi.js --cli -enc",
+    "decrypt": "node bin/sesi.js --cli -dec"
   },
   "dependencies": {
-    "@misterscan/sesi": "1.6.2"
+    "@misterscan/sesi": "1.6.4"
   },
   "allowScripts": {
-    "@google/genai@2.10.0": true,
+    "@google/genai@2.12.0": true,
     "protobufjs@7.6.4": true
   }
 }
