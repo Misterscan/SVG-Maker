@@ -1,0 +1,19 @@
+allow "SesiDo/build" in with {createSVG} set_alias("SesiDo-Flash", "gemini-3-flash-preview")
+
+let fallbackDescription = "A random scene of space with planets and stars."
+let svgReq = ""
+
+if len(args) > 0 {
+    svgReq = args[0]
+} else {
+    print ""
+    svgReq = trim(input("Please enter a description for the SVG you want to generate: "))
+    if svgReq == "" {
+        print "No description provided. Using fallback."
+        svgReq = fallbackDescription
+    }
+}
+
+print createSVG({"description": svgReq})
+
+if len(args) == 0 {input("Press Enter to exit...")}

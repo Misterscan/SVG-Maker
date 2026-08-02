@@ -177,6 +177,12 @@
       align-items: center;
     }
 
+    .stacked-control {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
     .control-field {
       flex: 1;
       display: flex;
@@ -270,6 +276,9 @@
       padding: 16px 20px;
       background: rgba(10, 10, 20, 0.6);
       border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 10px;
+      flex-direction: column;
     }
 
     .render-btn {
@@ -298,6 +307,26 @@
 
     .render-btn:active {
       transform: translateY(0);
+    }
+
+    .secondary-btn {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 13px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .secondary-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
     }
 
     /* Right Main Panel: Preview & Canvas */
@@ -598,6 +627,10 @@
 
       <!-- Dimension and Preset Selection -->
       <div class="controls-group">
+        <div class="stacked-control">
+          <label for="svgPrompt" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted)">SVG Prompt</label>
+          <input id="svgPrompt" class="text-input" type="text" placeholder="A neon owl in a storm of stars">
+        </div>
         <div class="control-row">
           <div class="control-field">
             <label for="canvasPreset">Draw Preset</label>
@@ -635,6 +668,12 @@
 
       <!-- Action Row -->
       <div class="action-row">
+        <button class="secondary-btn" id="generateSvgBtn">
+          <svg style="width:18px;height:18px;fill:currentColor" viewBox="0 0 24 24">
+            <path d="M17,1.01L7,1C5.9,1 5,1.9 5,3V21C5,22.1 5.9,23 7,23H17C18.1,23 19,22.1 19,21V7L17,1.01M12,20C9.24,20 7,17.76 7,15C7,12.24 9.24,10 12,10C14.76,10 17,12.24 17,15C17,17.76 14.76,20 12,20M13.5,13H11V15.5H13.5V18H15V15.5H17.5V14H15V11.5H13.5V13Z" />
+          </svg>
+          Generate SVG from Prompt
+        </button>
         <button class="render-btn" id="renderBtn">
           <svg style="width:18px;height:18px;fill:currentColor" viewBox="0 0 24 24">
             <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
@@ -834,7 +873,9 @@ Draw.text(400, 310, "Sesi Draw", 24, "#ffffff", {"text-anchor": "middle", "font-
     const presetSelect = document.getElementById("canvasPreset");
     const canvasWidth = document.getElementById("canvasWidth");
     const canvasHeight = document.getElementById("canvasHeight");
+    const svgPrompt = document.getElementById("svgPrompt");
     const renderBtn = document.getElementById("renderBtn");
+    const generateSvgBtn = document.getElementById("generateSvgBtn");
     const consoleLogs = document.getElementById("consoleLogs");
     const clearLogsBtn = document.getElementById("clearConsoleBtn");
     const svgWrapper = document.getElementById("svgWrapper");
@@ -988,7 +1029,65 @@ Draw.text(400, 310, "Sesi Draw", 24, "#ffffff", {"text-anchor": "middle", "font-
         });
     }
 
+    function generateSvgFromPrompt() {
+      const description = svgPrompt.value.trim();
+      if (!description) {
+        logToTerminal("Enter a prompt before generating an SVG.", "error");
+        return;
+      }
+
+      loadingOverlay.style.display = "flex";
+      loadingText.textContent = "Generating SVG from prompt...";
+      statusDot.className = "status-dot loading";
+      statusText.textContent = "Generating...";
+
+      logToTerminal("Sending prompt to SesiDo Agent...", "info");
+
+      fetch("/generate-svg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description })
+      })
+        .then(res => res.json())
+        .then(data => {
+          loadingOverlay.style.display = "none";
+          statusDot.className = "status-dot";
+          statusText.textContent = "Ready";
+
+          if (data.error) {
+            logToTerminal("SVG Generation Error:\n" + data.error, "error");
+            if (data.output) {
+              logToTerminal("Stdout context:\n" + data.output, "stdout");
+            }
+            return;
+          }
+
+          if (data.svg) {
+            currentSvgData = data.svg;
+            svgWrapper.innerHTML = data.svg;
+            if (data.code) {
+              editor.value = data.code;
+              updateLineNumbers();
+            }
+            logToTerminal("SVG generated successfully.", "success");
+            if (data.outputPath) {
+              logToTerminal("Saved file: " + data.outputPath, "success");
+            }
+            if (data.output) {
+              logToTerminal("Script stdout:\n" + data.output, "stdout");
+            }
+          }
+        })
+        .catch(err => {
+          loadingOverlay.style.display = "none";
+          statusDot.className = "status-dot";
+          statusText.textContent = "Error";
+          logToTerminal("Network or Server error: " + err.message, "error");
+        });
+    }
+
     renderBtn.addEventListener('click', renderSvg);
+    generateSvgBtn.addEventListener('click', generateSvgFromPrompt);
 
 
 

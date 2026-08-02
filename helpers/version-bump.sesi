@@ -11,8 +11,8 @@
         3. All .md and .sesi files in the root directory (READMEs).
 
 Usage:
-    sesi -l helpers/version-bump.sesi
-    Enter old version when prompted, then new version when prompted)
+    npm run version:bump
+    sesi helpers/version-bump.sesi --custom // Prompts for custom FROM and TO values
 */
 
 allow "safe" in with Safe
@@ -21,27 +21,22 @@ allow "std/terminal" in with {color}
 fn isFile(fileName) {
     let hasExt = includes(fileName, ".")
     let isBinJS = ends_with(fileName, ".js")
-    let isDocsMD = ends_with(fileName, ".md")
-    let isRootMDOrSesi = ends_with(fileName, ".md") || ends_with(fileName, ".sesi")
-    if hasExt && (isBinJS || isDocsMD || isRootMDOrSesi) {
+    let isMD = ends_with(fileName, ".md")
+    let isSesi = ends_with(fileName, ".sesi")
+    if hasExt && (isBinJS || isMD || isSesi) {
         return true
     } else {
         return false
     }
 }
 
-let srcDir1 = list_dir("bin")
-let binFiles = []
-for file in srcDir1 {
-    if isFile(file) {
-        push(binFiles, file)
-    }
-}
+let sesiBin = Safe.readFile("bin/sesi.js")
 
-let srcDir2 = list_dir("docs")
+let docsDir = list_dir("docs")
 let docsFiles = []
-for file in srcDir2 {
+for file in docsDir {
     if isFile(file) {
+        file = "docs/" + file
         push(docsFiles, file)
     }
 }
@@ -58,21 +53,31 @@ let exampleDir = list_dir("examples/main")
 let exampleFiles = []
 for file in exampleDir {
     if isFile(file) {
+        file = "examples/main/" + file
         push(exampleFiles, file)
     }
 }
 
-print "srcDir1:
-" color(binFiles, "cyan") "
-"
-print "srcDir2:
-" color(docsFiles, "cyan") "
-"
-print "rootDir:
-" color(rootFiles, "cyan") "
-"
-print "exampleFiles:
-" color(exampleFiles, "cyan") "
+let gettingStartedDir = list_dir("getting-started")
+let gettingStartedFiles = []
+for file in gettingStartedDir {
+    if isFile(file) {
+        file = "getting-started/" + file
+        push(gettingStartedFiles, file)
+    }
+}
+
+print "docsFiles:
+" color(docsFiles, "cyan")"
+
+rootFiles:
+" color(rootFiles, "cyan")"
+
+exampleFiles:
+" color(exampleFiles, "cyan")"
+
+gettingStartedFiles:
+" color(gettingStartedFiles, "cyan")"
 "
 
 fn getVersionFromFile(fileName) {
@@ -96,123 +101,126 @@ fn getVersionFromFile(fileName) {
 }
 
 let pkgJSON = "package.json"
+let editorsPkgJSON = "editors/vscode/package.json"
 let v = getVersionFromFile(pkgJSON)
 
-print "Current version:" color(v, "green")
-print ""
-let fromVar = input("Enter version to swap from: ")
-let toVar = input("Enter version to swap to: ")
-print "================"
-print color("Starting swap...", "green")
-print "================"
-print ""
+print "Current version:" color(v, "green")"
+"
+let fromVar = v
+let toVar = ""
+let customSwap = args[0]
+if customSwap == "--custom" {
+    fromVar = input("Enter version/text to swap from: ")
+    toVar = input("Enter version/text to swap to: ")
+} else {
+    toVar = input("Enter version to swap to: ")
+}
+print "
+================
+" color("Starting swap...", "green")"
+================
+"
 
 let getPkgJSON = Safe.readFile(pkgJSON)
 let newPkgJSON = swap(getPkgJSON, v, toVar)
 Safe.writeFile(pkgJSON, newPkgJSON)
-print "Swapped" v "to" toVar "in" pkgJSON
-print ""
+print color("Swapped "+v+" to "+toVar+" in "+pkgJSON, "green")"
+"
+if getVersionFromFile(editorsPkgJSON) == v {
+    getPkgJSON = Safe.readFile(editorsPkgJSON)
+    newPkgJSON = swap(getPkgJSON, v, toVar)
+    Safe.writeFile(editorsPkgJSON, newPkgJSON)
+    print color("Swapped "+v+" to "+toVar+" in "+editorsPkgJSON, "green")"\n"
+}
 
-for file in srcDir1 {
+fn swapTag(file) {print color("Swapped "+fromVar+" to "+toVar+" in "+file, "green")"\n"}
+fn skipTag(file) {print color("Skipping file:", "yellow")file}
+
+try {
+    let file = "bin/sesi.js"
+    let contents = sesiBin
+    let newContents = ""
+    if contains(contents, fromVar) {
+        newContents = swap(contents, fromVar, toVar)
+        Safe.writeFile(file, newContents)
+        swapTag(file)
+    } else {
+        skipTag(file)
+        print "Reason:" file "already up to date."
+        print ""
+    }
+} catch(e) {
+    print "An error occured:" color(str(e), "red")
+}
+
+for file in docsFiles {
     try {
-        let contents = ""
-        if ends_with(file, ".js") {
-            file = "bin/" + file
-            contents = Safe.readFile(file)
-            print "Successfully loaded" file
-        } else {
-            continue
-        }
+        let contents = Safe.readFile(file)
         let newContents = ""
         if contains(contents, fromVar) {
             newContents = swap(contents, fromVar, toVar)
             Safe.writeFile(file, newContents)
-            print "Swapped" fromVar "to" toVar "in" file
-            print ""
+            swapTag(file)
         } else {
-            print color("Skipping file:", "yellow") file
+            skipTag(file)
             print "Reason:" file "already up to date."
             print ""
         }
     } catch(e) {
-        print "An error occured:" color(e, "red")
+        print "An error occured:" color(str(e), "red")
     }
 }
 
-for file in srcDir2 {
+for file in rootFiles {
     try {
-        file = "docs/" + file
-        let contents = ""
-        if ends_with(file, ".md") {
-            contents = Safe.readFile(file)
-            print "Successfully loaded" file
-        } else {
-            continue
-        }
+        let contents = Safe.readFile(file)
         let newContents = ""
         if contains(contents, fromVar) {
             newContents = swap(contents, fromVar, toVar)
             Safe.writeFile(file, newContents)
-            print "Swapped" fromVar "to" toVar "in" file
-            print ""
+            swapTag(file)
         } else {
-            print color("Skipping file:", "yellow") file
-            print "Reason:" file "already up to date."
-            print ""
-        }
-    } catch(e) {
-        print "An error occured:" color(e, "red")
-    }
-}
-
-for file in rootDir {
-    try {
-        let contents = ""
-        if ends_with(file, ".md") || ends_with(file, ".sesi") {
-            file = "./" + file
-            contents = Safe.readFile(file)
-            print "Successfully loaded" file
-        } else {
-            continue
-        }
-        let newContents = ""
-        if contains(contents, fromVar) {
-            newContents = swap(contents, fromVar, toVar)
-            Safe.writeFile(file, newContents)
-            print "Swapped" fromVar "to" toVar "in" file
-            print ""
-        } else {
-            print color("Skipping file:", "yellow") file
+            skipTag(file)
             print "Reason:" file "already up to date or doesn't contain" fromVar "at all."
             print ""
         }
     } catch(e) {
-        print "An error occured:" color(e, "red")
+        print "An error occured:" color(str(e), "red")
     }
 }
 
 for file in exampleFiles {
     try {
-        let contents = ""
-        if ends_with(file, ".sesi") {
-            file = "examples/main/" + file
-            contents = Safe.readFile(file)
-            print "Successfully loaded" file
-        } else {
-            continue
-        }
+        let contents = Safe.readFile(file)
         let newContents = ""
         if contains(contents, fromVar) {
             newContents = swap(contents, fromVar, toVar)
             Safe.writeFile(file, newContents)
-            print "Swapped" fromVar "to" toVar "in" file
-            print ""
+            swapTag(file)
         } else {
-            print color("Skipping file:", "yellow") file
+            skipTag(file)
             print "Reason:" file "already up to date or doesn't contain" fromVar "at all."
             print ""
         }
     } catch(e) {
-        print "An error occured:" color(e, "red")
+        print "An error occured:" color(str(e), "red")
+    }
+}
+
+for file in gettingStartedFiles {
+    try {
+        let contents = Safe.readFile(file)
+        let newContents = ""
+        if contains(contents, fromVar) {
+            newContents = swap(contents, fromVar, toVar)
+            Safe.writeFile(file, newContents)
+            swapTag(file)
+        } else {
+            skipTag(file)
+            print "Reason:" file "already up to date or doesn't contain" fromVar "at all."
+            print ""
+        }
+    } catch(e) {
+        print "An error occured:" color(str(e), "red")
     }
 }

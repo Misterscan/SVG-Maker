@@ -9,11 +9,12 @@
   <img src="assets/badge_library.svg" alt="Library std/draw" height="25" />
   <img src="assets/badge_studio.svg" alt="SVG Studio v1.0.0" height="25" />
   <img src="assets/badge_license.svg" alt="MIT License" height="25" />
+  <img src="assets/badge_framework.svg" alt="SesiDo Framework" height="25" />
 </p>
 
 A workspace for drawing and exporting SVGs using the [Sesi](https://github.com/misterscan/sesi) programming language and its built-in `std/draw` library.
 
-Includes **Sesi SVG Studio** — a local web app for writing, previewing, and exporting Sesi drawing scripts interactively in the browser.
+Includes **Sesi SVG Studio** and **SesiDo** — an agent framework for generating SVGs from natural language prompts both interactively in the web studio and via command line.
 
 ---
 
@@ -22,11 +23,12 @@ Includes **Sesi SVG Studio** — a local web app for writing, previewing, and ex
 ### Prerequisites
 
 - [Node.js](https://nodejs.org) v18+
-- [Sesi](https://github.com/misterscan/sesi) v1.5.6+ (for global `sesi` command instead of npm)
+- [Sesi](https://github.com/misterscan/sesi) v1.6.6+ (for global `sesi` command instead of npm)
 - Dependencies installed:
 
 ```bash
 npm install
+sesi install
 ```
 
 ---
@@ -38,13 +40,13 @@ An interactive browser-based editor for writing Sesi drawing code and previewing
 ### Launch the Studio
 
 ```bash
-npm run web
+npm run start
 ```
 
 ### Launch the Studio (alternative)
 
 ```bash
-sesi -l ui.sesi
+npm run local ui.sesi
 ```
 
 ### Features
@@ -59,10 +61,13 @@ sesi -l ui.sesi
 | **Copy SVG**      | Copies the raw SVG XML to your clipboard                                          |
 | **Download**      | Saves the rendered SVG as a `.svg` file                                           |
 | **Console**       | Displays script stdout and runtime errors                                         |
+| **Generate SVG from Prompt** | Describe an SVG and have the SesiDo agent write and render it for you  |
 
 ### How It Works
 
-When you click **Render Drawing**, the browser sends your Sesi code to the local server (`ui.sesi`). The server writes it to a temporary file, runs it via `exec()`, captures the SVG output from stdout, and streams it back to the browser for display.
+When you click **Render Drawing**, the browser sends your Sesi code to the local server (`ui.sesi`). The server writes it to a temporary file, runs it via `sesi()`, captures the SVG output from stdout, and streams it back to the browser for display.
+
+When you type a description into the **SVG Prompt** field and click **Generate SVG from Prompt**, the browser posts your description to the `/generate-svg` endpoint. The server calls the SesiDo `createSVG` agent, which writes and runs a Sesi drawing script, saves the result under `SesiDo/.artifacts/svgs/`, and returns the rendered SVG to the Studio for preview.
 
 ---
 
@@ -72,14 +77,14 @@ To run any `.sesi` script from the command line:
 
 ```bash
 npm run sesi <file>.sesi
-sesi <file>.sesi
+sesi --cli <file>.sesi
 ```
 
 For scripts that use external libraries, file I/O or `exec()` (like the Web server):
 
 ```bash
 npm run local <file>.sesi
-sesi -l <file>.sesi
+sesi --cli -l <file>.sesi
 ```
 
 Inline code evaluation (useful for quick syntax checks):
@@ -88,6 +93,23 @@ Inline code evaluation (useful for quick syntax checks):
 npm run eval "print 'Hello from Sesi'"
 sesi -e "print 'Hello from Sesi'"
 ```
+
+### Generating an SVG from a Prompt (CLI)
+
+`svg-gen.sesi` calls the same SesiDo `createSVG` agent used by the Studio UI, but from the command line:
+
+```bash
+npm run svg-gen
+sesi --cli -l svg-gen.sesi
+```
+
+Run it with an inline description to skip the prompt:
+
+```bash
+npm run svg-gen "a vast ocean at sunset"
+```
+
+If no description is given, it asks for one interactively and falls back to a default space scene if left blank. The generated `.svg` is saved under `SesiDo/.artifacts/svgs/`.
 
 ---
 
@@ -148,7 +170,11 @@ Draw.clear()                         // resets the draw buffer
 ```
 /
 ├── ui.sesi               # Web UI server
-├── assets/index.html     # Web UI frontend (served by the above)
+├── svg-gen.sesi          # CLI tool for generating SVGs using SesiDo
+├── sesi.json             # Sesi package manifest (declares SesiDo dependency)
+├── assets/index.html     # Web UI frontend (served by ui.sesi)
+├── sesi_modules/SesiDo/  # SesiDo agent framework for SVG generation
+├── SesiDo/               # SesiDo runtime data, logs, database, and generated SVG artifacts
 ├── main.sesi             # General entry point script
 ├── bin/                  # Sesi CLI executable
 ├── make/                 # Project specific scripts to generate SVGs
@@ -165,7 +191,7 @@ Draw.clear()                         // resets the draw buffer
 
 | Command                                            | Description            |
 | -------------------------------------------------- | ---------------------- |
-| `npm run lint` or `sesi bin/lint.sesi <file>.sesi` | Run the Sesi linter    |
+| `npm run lint` or `sesi bin/lint.sesi --cli <file>.sesi` | Run the Sesi linter    |
 | `npm run encrypt <file>` or `sesi -enc <file>`     | Encrypt a `.sesi` file |
 | `npm run decrypt <file>` or `sesi -dec <file>`     | Decrypt a `.sesi` file |
 

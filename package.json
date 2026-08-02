@@ -1,6 +1,6 @@
 {
   "name": "svg-maker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A workspace for generated SVGs using Sesi built-in functions from the std/draw library.",
   "main": "node_modules/@misterscan/sesi/dist/index.js",
   "bin": {
@@ -10,10 +10,10 @@
   "author": "misterscan",
   "private": true,
   "scripts": {
-    "sesi": "node bin/sesi.js",
+    "sesi": "node bin/sesi.js --cli",
     "local": "node bin/sesi.js --cli -l",
-    "start": "node bin/sesi.js --cli -l main.sesi",
-    "web": "node bin/sesi.js --cli -l ui.sesi",
+    "start": "node bin/sesi.js --cli -l ui.sesi",
+    "svg-gen": "node bin/sesi.js --cli -l svg-gen.sesi",
     "eval": "node bin/sesi.js --cli -e",
     "help": "node bin/sesi.js --cli -h",
     "lint": "node bin/sesi.js --cli bin/lint.sesi",
@@ -21,10 +21,10 @@
     "decrypt": "node bin/sesi.js --cli -dec"
   },
   "dependencies": {
-    "@misterscan/sesi": "1.6.4"
+    "@misterscan/sesi": "1.7.5"
   },
   "allowScripts": {
-    "@google/genai@2.12.0": true,
-    "protobufjs@7.6.4": true
+    "@google/genai@2.15.0": true,
+    "protobufjs@7.6.5": true
   }
 }

@@ -20,13 +20,13 @@ const path = require('path');
 const args = process.argv.slice(2);
 
 const argsHeader = `
-Sesi Programming Language v1.6.4
+Sesi Programming Language v1.7.5
 
 Usage:
   sesi <file> [options] <args>  Run a Sesi program
   sesi -l                Run a Sesi program with local file access
   sesi -e "code"         Evaluate Sesi code directly
-  sesi -h <query>        Ask for help from our Sesi Co-Pilot
+  sesi -h <query>        Ask for help from our Sesira
   sesi -s                Launch Sesi Studio IDE
   sesi --repl            Start interactive Sesi REPL
   sesi -v                Show version
@@ -39,7 +39,7 @@ Usage:
   sesi -t <file>         Run via legacy tree-walking interpreter
   sesi -bd <file>        Print disassembled bytecode
   sesi install           Install all dependencies listed in sesi.json
-  sesi install <pkg>     Install a third-party package (e.g. github:owner/repo)
+  sesi install <pkg>     Install a third-party package (e.g. owner/repo#ref)
 
   Options:
   -v --version           Show version
@@ -100,7 +100,7 @@ function parseArgs(args) {
     const isHelpFlag = arg === '--help' || arg === '-help' || arg === '-h';
 
     if (arg === '-v' || arg === '--version') {
-      console.log('Sesi v1.6.4');
+      console.log('Sesi v1.7.5');
       process.exit(0);
     } else if (isHelpFlag && i === 0 && !options.file && !options.eval) {
       if (args[i + 1] && !args[i + 1].startsWith('-')) {
@@ -190,7 +190,7 @@ async function startRepl() {
       fg: 'white',
       border: { fg: 'cyan' }
     },
-    label: ' Sesi Interactive Terminal (v1.6.4) ',
+    label: ' Sesi Interactive Terminal (v1.7.5) ',
     scrollable: true,
     alwaysScroll: true,
     mouse: true,
@@ -310,9 +310,18 @@ async function main() {
   }
 
   if (parsed.studio) {
-    const studioServerPath = path.join(__dirname, '..', 'sesi-studio', 'studio.sesi');
-    if (fs.existsSync(studioServerPath)) {
+    const studioServerPaths = [
+      path.join(path.dirname(process.execPath), 'sesi-studio', 'studio.sesi'),
+      path.join(__dirname, '..', 'sesi-studio', 'studio.sesi'),
+    ];
+    const studioServerPath = studioServerPaths.find(candidate => fs.existsSync(candidate));
+    if (studioServerPath) {
       console.log('Launching Sesi Studio...');
+      const installedStudioPath = studioServerPaths[0];
+      if (studioServerPath === installedStudioPath) {
+        process.env.SESI_STUDIO_PROJECT_ROOT = process.cwd();
+        process.chdir(path.dirname(process.execPath));
+      }
       const studioOptions = {
         ...parsed.sesiOptions,
         safeMode: false,
@@ -324,7 +333,7 @@ async function main() {
         process.exit(1);
       });
     } else {
-      console.error('Error: Sesi Studio backend not found at ' + studioServerPath);
+      console.error('Error: Sesi Studio backend not found. Checked: ' + studioServerPaths.join(', '));
       process.exit(1);
     }
     return;
@@ -390,9 +399,9 @@ async function main() {
     if (parsed.helpFile) {
       parsed.sesiOptions.args.push(path.resolve(parsed.helpFile));
     }
-    const copilotPath = path.join(__dirname, '../chatbot/sesi_db_chatbot.sesi');
+    const copilotPath = path.join(__dirname, '../chatbot/sesira.sesi');
     await runSesiFile(copilotPath, parsed.sesiOptions).catch((error) => {
-      console.error('Fatal error in Sesi Co-Pilot:', error.message);
+      console.error('Fatal error with Sesira:', error.message);
       process.exit(1);
     });
   } else if (parsed.eval) {

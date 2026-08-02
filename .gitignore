@@ -13,3 +13,6 @@ temp_draw.sesi
 make/*.sesi
 playground/svgs/*
 playground/local
+sesi_modules
+.artifacts
+SesiDo/database
