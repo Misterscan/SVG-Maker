@@ -71,9 +71,8 @@ async fn handleRequest(req) {
       Safe.writeFile(tempFile, finalCode)
       
       let out = ""
-      try {out = sesi("temp_draw.sesi", true)} catch (e) {}
+      try {out = sesi(tempFile, true); trash(tempFile, true)} catch (e) {}
       
-      trash(tempFile, true)
       let svg = ""
       let error = null
       
