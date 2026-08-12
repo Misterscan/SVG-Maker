@@ -41,7 +41,7 @@ When AI agents write or edit `.sesi` scripts, they must use this debugging loop:
 1. **Draft in file, isolate risky snippet:** Identify the smallest parser/runtime-risky block (prompt block, model call, object schema, loop, etc.).
 2. **Validate snippet with eval mode first:** Run `npm run eval "sesi code"` to test the isolated block before full-script execution.
 3. **Apply fix in file only after eval passes:** If eval fails, iterate on snippet; do not repeatedly run full scripts while syntax is unresolved.
-4. **Validate script with the `test-runner` first before full run:** Run your script actions with a test script using the exports from `bin/test-runner.sesi`. Refer to `main/tests/verify_db.sesi` for an example.
+4. **Validate script with the `test-runner` first before full run:** Run your script actions with a test script using the exports from `bin/test-runner.sesi`.
 5. **Run full script after validation:** Execute `npm run sesi <file>.sesi` only once the isolated logic is valid.
 6. **Use file-aware help when blocked:** Run `npm run help <file>.sesi "<question>"` to get context-grounded help tied to the active script.
 7. **NEVER EDIT ANY .SESI FILES IN THE TERMINAL (ABSOLUTE RULE):**
@@ -55,4 +55,4 @@ When AI agents write or edit `.sesi` scripts, they must use this debugging loop:
 - Do NOT write Python scripts, Node.js scripts, or Bash/Shell scripts for workspace file manipulations. Always let Sesi do its job.
   **Why:** Sesi syntax is sensitive to whitespace, newlines, and brace positioning. Terminal-based string replacement will invariably break code.
 
-8. **Emphasize Native Verification Commands:** Prior to saving or running full Sesi scripts, proactively use inline evaluation (`npm run sesi:eval ""sesi code""` or `node bin/sesi.js -e ""...""`) to check and verify syntax and runtime behaviors instantly. It keeps execution cycles fast and deterministic.
+8. **Emphasize Native Verification Commands:** Prior to saving or running full Sesi scripts, proactively use inline evaluation (`npm run sesi:eval ""sesi code""` or `sesi -e ""...""`) to check and verify syntax and runtime behaviors instantly. It keeps execution cycles fast and deterministic.

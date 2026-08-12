@@ -10,8 +10,8 @@ To execute basic Python code, call `python` with a string containing your Python
 
 ```sesi
 // Run simple inline Python code
-let output = python("print('Hello from Python!')")
-print output // Hello from Python!
+let output = python("show('Hello from Python!')")
+show output // Hello from Python!
 ```
 
 ---
@@ -28,10 +28,10 @@ let data = {"username": "Alice", "score": 98}
 let response = python("
 import os, json
 args = json.loads(os.environ['SESI_ARGS'])
-print('User:', args['username'], 'Score:', args['score'])
+show('User:', args['username'], 'Score:', args['score'])
 ", data)
 
-print response // User: Alice Score: 98
+show response // User: Alice Score: 98
 ```
 
 ### 2. Via Command Line Arguments (`sys.argv`)
@@ -41,11 +41,11 @@ If you pass an **array** as the second argument, individual elements are stringi
 let names = ["Alice", "Bob"]
 let response = python("
 import sys
-print('First:', sys.argv[1])
-print('Second:', sys.argv[2])
+show('First:', sys.argv[1])
+show('Second:', sys.argv[2])
 ", names)
 
-print response
+show response
 // First: Alice
 // Second: Bob
 ```
@@ -63,7 +63,7 @@ Writing long Python snippets inside a Sesi string literal can be hard to format 
 // Load and execute an external python script file
 let scriptContent = read_file("scripts/data_analysis.py")
 let result = python(scriptContent, {"threshold": 10})
-print result
+show result
 ```
 
 This allows you to write actual Python files with full editor support, syntax highlighting, and formatting.
@@ -110,9 +110,9 @@ If Sesi is running in Safe Mode (activated via the `SESI_SAFE_MODE=true` environ
 ```sesi
 // If Safe Mode is enabled:
 try {
-  python("print('Unsafe')")
+  python("show('Unsafe')")
 } catch (err) {
-  print "Caught sandbox violation:" err
+  show "Caught sandbox violation:" err
   // Security Violation: Operation "python" is blocked in Safe Mode.
 }
 ```

@@ -19,7 +19,8 @@ Sesi is a **clean, minimal, side-effect-oriented** scripting language. It is:
 
 ```sesi
 let name    = "Sesi"
-let version = 1.7.5
+let retries: number = 3
+let version = 1.8.5
 let active  = true
 let missing         // null (uninitialized)
 ```
@@ -42,6 +43,14 @@ count = count + 1   // count is now 1
 | `array`  | —     | `[1, 2, 3]`              |
 | `object` | —     | `{"key": "value"}`       |
 | `any`    | —     | any value, no type check |
+
+Type annotations are optional and belong after the variable name:
+
+```sesi
+let total: number = 42
+let label: string = "draft"
+let ready: bool = true
+```
 
 > **CRITICAL:** Object literals require **quoted string keys**: `{"name": "Ada"}`  
 > Schema objects (in `model()` configs/outputs) require **unquoted keys**: `{key: string}`
@@ -89,7 +98,7 @@ user["role"] = "developer"
 
 ```sesi
 fn greet(name: string) {
-  print "Hello," name
+  show "Hello," name
 }
 
 greet("Ada")   // Hello, Ada
@@ -105,7 +114,7 @@ fn add(a: number, b: number) -> number {
 }
 
 fn greet(name: string = "World") {
-  print "Hello," name
+  show "Hello," name
 }
 ```
 
@@ -150,9 +159,9 @@ Functions close over **live bindings** — changes to outer variables are visibl
 let base = 100
 fn addBase(n) { return n + base }
 
-print addBase(5)   // 105
+show addBase(5)   // 105
 base = 200
-print addBase(5)   // 205
+show addBase(5)   // 205
 ```
 
 ### Exporting Functions
@@ -171,19 +180,19 @@ No parentheses required around conditions.
 
 ```sesi
 if score >= 90 {
-  print "excellent"
+  show "excellent"
 } else if score >= 70 {
-  print "passing"
+  show "passing"
 } else {
-  print "needs work"
+  show "needs work"
 }
 ```
 
 ### One-liners
 
 ```sesi
-if ready { print "go" }
-if !ready { print "wait" }
+if ready { show "go" }
+if !ready { show "wait" }
 ```
 
 ### Truthiness Table
@@ -224,7 +233,7 @@ if !ready { print "wait" }
 ```sesi
 let i = 0
 while i < 5 {
-  print i
+  show i
   i = i + 1
 }
 // One-liner
@@ -236,12 +245,12 @@ while x > 0 { x = x - 1 }
 ```sesi
 let names = ["Ada", "Grace", "Linus"]
 for name in names {
-  print "Hello," name
+  show "Hello," name
 }
 
 // Object keys
 for key in keys(config) {
-  print key ":" config[key]
+  show key ":" config[key]
 }
 ```
 
@@ -249,7 +258,7 @@ for key in keys(config) {
 
 ```sesi
 for i = 0 to 5 {
-  print i
+  show i
 }
 // 0 1 2 3 4
 ```
@@ -260,7 +269,7 @@ for i = 0 to 5 {
 for item in items {
   if item == "stop" { break }      // exit loop
   if item == "skip" { continue }   // next iteration
-  print item
+  show item
 }
 ```
 
@@ -284,12 +293,12 @@ Sesi's unique string-composition primitive. Replaces template literals.
 
 ```sesi
 let name = "Ada"
-let ver  = "1.7.5"
+let ver  = "1.8.5"
 
 prompt header {"Welcome to Sesi" ver ". Hello," name}
-// header = "Welcome to Sesi 1.7.5. Hello, Ada"
+// header = "Welcome to Sesi 1.8.5. Hello, Ada"
 
-print header
+show header
 write_file("out.txt", header)
 ```
 
@@ -314,14 +323,14 @@ prompt fullName {first last}
 prompt badge {"[Developer] "fullName}
 ```
 
-### Prefer prompt blocks over `+` inside `print`
+### Prefer prompt blocks over `+` inside `show`
 
 ```sesi
 // ✅ Idiomatic
-print "Hello," name "version" version
+show "Hello," name "version" version
 
 // ❌ Avoid
-print "Hello, " + name + " version " + str(version)
+show "Hello, " + name + " version " + str(version)
 ```
 
 ---
@@ -332,7 +341,7 @@ print "Hello, " + name + " version " + str(version)
 
 ```sesi
 export fn add(a, b) { return a + b }
-export let VERSION = "1.7.5"
+export let VERSION = "1.8.5"
 ```
 
 ### Importing — `import` (named)
@@ -346,11 +355,11 @@ import { add, PI } from "math"
 ```sesi
 // Named bindings
 allow "math" in with { add, multiply }
-print add(3, 4)
+show add(3, 4)
 
 // Namespace object
-allow "math" in with Math
-print Math.add(3, 4)
+allow "math" in as Math
+show Math.add(3, 4)
 ```
 
 ### Module Resolution Order
@@ -370,7 +379,8 @@ print Math.add(3, 4)
 | `std/theory` | `Music`      | Music theory helpers     |
 | `std/math`   | `Math`       | Math operations          |
 | `std/time`   | `Time`       | Time/date functions      |
-| `std/json`   | `JSON`       | JSON parsing             |
+
+JSON conversion is built in directly through `from_json` and `to_json`; the former `std/json` module has been removed.
 
 ---
 
@@ -380,9 +390,9 @@ print Math.add(3, 4)
 try {
   let data = read_file("config.json")
   let obj  = from_json(data)
-  print obj["key"]
+  show obj["key"]
 } catch (err) {
-  print "Error:" err
+  show "Error:" err
 }
 ```
 
@@ -393,7 +403,7 @@ try {
 ## 9. std/draw — SVG and Pixel Drawing
 
 ```sesi
-allow "std/draw" in with Draw
+allow "std/draw" in as Draw
 ```
 
 ### Shapes
@@ -479,7 +489,7 @@ Shapes are rendered in draw-call order — **earlier calls appear behind later o
 
 ```sesi
 let response = model("gemini-3.6-flash") {"Summarize this:" text}
-print response
+show response
 ```
 
 > The prompt block `{...}` uses the same sequential string composition rules as `prompt`.
@@ -539,7 +549,7 @@ let res = web_send(url, body, {"Content-Type": "application/json"})
 
 // Parse JSON response
 let data = from_json(body)
-print data["title"]
+show data["title"]
 ```
 
 ### HTTP Server
@@ -592,8 +602,8 @@ Documents auto-get an `_id` if not provided.
 ## 13. Audio (std/audio & std/theory)
 
 ```sesi
-allow "std/audio"  in with Audio
-allow "std/theory" in with Music
+allow "std/audio"  in as Audio
+allow "std/theory" in as Music
 ```
 
 ### Playback & Synthesis
@@ -671,6 +681,7 @@ These are always available — no imports needed:
 | `to_lower(str)`      | Lowercase                   |
 | `trim(str)`          | Strip whitespace            |
 | `replace(str, a, b)` | Replace a with b            |
+| `regex(pattern, text, options?)` | Match, test, replace, or split with a regular expression |
 | `str(val)`           | Convert any value to string |
 
 ### JSON
@@ -706,7 +717,7 @@ These are always available — no imports needed:
 let planned = estimate_cost("gemini-3.6-flash", prompt, 1000)
 let answer = model("gemini-3.6-flash") {max_tokens: 1000} {prompt}
 let actual = model_usage()
-print actual["total_tokens"] actual["total_cost_usd"]
+show actual["total_tokens"] actual["total_cost_usd"]
 ```
 
 These are deliberately separate: `tokenize()` is local and returns IDs, `count_tokens()` asks the selected provider for an exact request count, and `estimate_tokens()` is the explicit offline approximation.
@@ -733,6 +744,9 @@ These are deliberately separate: `tokenize()` is local and returns IDs, `count_t
 | `make_dir(path)`          | Create directory → bool             |
 | `rename(old, new)`        | Rename or move file/directory       |
 | `archive(src, dest?)`     | Backup/copy file/directory          |
+| `get_ext(path)`           | Get a lowercase file extension      |
+| `exists(path)`            | Check whether a path exists         |
+| `zip(src, dest?, op?)`    | Create, list, or extract archives   |
 | `trash(path, auto?)`      | Delete (trash or permanent remove)  |
 
 ### Misc
@@ -740,14 +754,19 @@ These are deliberately separate: `tokenize()` is local and returns IDs, `count_t
 | Function             | Description                                         |
 | -------------------- | --------------------------------------------------- |
 | `input(prompt)`      | Read a line from stdin                              |
-| `print ...`          | Print space-separated values to stdout              |
+| `show ...`          | Print space-separated values to stdout              |
 | `swap(str, a, b)`    | String swap/replacement utility                     |
 | `define_tool(n,f,d)` | Register a function as a named AI tool              |
 | `list_tools()`       | List all registered tools                           |
-| `exec(cmd)`          | Run a system shell command (blocked in Safe Mode)   |
+| `sesi(cmd, options?)`| Run a sesi script                                   |
+| `exec(cmd)` / `run(cmd)` | Run a system shell command (blocked in Safe Mode) |
 | `spawn(path)`        | Run a background Sesi script (blocked in Safe Mode) |
 | `python(code, args)` | Run inline Python code (blocked in Safe Mode)       |
 | `js(code, args)`     | Run inline JavaScript code (blocked in Safe Mode)   |
+| `gif(input, output, options?)` | Create an animated GIF with FFmpeg (blocked in Safe Mode) |
+| `video(model) {config} {prompt}` | Generate Base64 video with Gemini Omni Flash or Veo |
+| `video(input, output, options?)` | Create or transcode video with FFmpeg (blocked in Safe Mode) |
+| `ffmpeg(args, options?)` | Run structured FFmpeg arguments (blocked in Safe Mode) |
 | `html(body, opts)`   | Build a complete HTML document string               |
 
 ## FOR MORE PLEASE VISIT "BUILTINS.md" EITHER IN docs/ OR IF NOT PRESENT, THEN IN node_modules/@misterscan/sesi/docs/BUILTINS.md
@@ -796,21 +815,21 @@ const x = 10         // forbidden
 return double(5)     // forbidden at top level
 ```
 
-### 4. `print` concatenation style
+### 4. `show` concatenation style
 
 ```sesi
 // ✅ Idiomatic — space-separated values
-print "Hello," name "your score is" score
+show "Hello," name "your score is" score
 
 // ❌ Avoid
-print "Hello, " + name + " your score is " + str(score)
+show "Hello, " + name + " your score is " + str(score)
 ```
 
 ### 5. Block condensing is valid
 
 ```sesi
 while x { x = x - 1 }     // valid one-liner
-if ready { print "go" }    // valid one-liner
+if ready { show "go" }    // valid one-liner
 ```
 
 ### 6. `%` operator for modulo
@@ -935,24 +954,24 @@ let cfg = {"key": "val"}
 
 // Functions
 fn add(a: num, b: num) -> num { return a + b }
-fn greet(name: str = "World") { print "Hello," name }
+fn greet(name: str = "World") { show "Hello," name }
 
 // Control flow
-if x > 0 { print "pos" } else { print "neg" }
-for item in items { print item }
-for i = 0 to 5 { print i }
+if x > 0 { show "pos" } else { show "neg" }
+for item in items { show item }
+for i = 0 to 5 { show i }
 while x > 0 { x = x - 1 }
 
 // Prompt blocks
 prompt msg {"Value is:" x "and name is" name}
 
 // Modules
-allow "std/draw" in with Draw
+allow "std/draw" in as Draw
 allow "std/db" in with {db_open}
 import { fn1, fn2 } from "mymodule"
 
 // Error handling
-try { let data = read_file("f.json") } catch (err) { print "Error:" err }
+try { let data = read_file("f.json") } catch (err) { show "Error:" err }
 
 // AI
 let r = model("gemini-3.6-flash") {thinkingLevel: "low"} {"Question:" q}
@@ -969,7 +988,7 @@ let json_str = to_json({"name": "Ada"})
 let obj = from_json(json_str)
 
 // SVG
-allow "std/draw" in with Draw
+allow "std/draw" in as Draw
 Draw.rect(0, 0, 400, 300, "#1a1a2e")
 Draw.circle(200, 150, 80, "#e94560")
 Draw.text(100, 160, "Hello", 28, "white")

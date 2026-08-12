@@ -1,7 +1,7 @@
 // Sesi script to generate a premium SVG representing a late-night laptop scene with a cat
-allow "std/draw" in with Draw
+allow "std/draw" in as Draw
 
-print "Initializing SVG setup..."
+show "Initializing SVG setup..."
 /* 
   1. Define Linear and Radial Gradients
    Background room wall gradient
@@ -98,12 +98,12 @@ Draw.style("
   }
 ")
 
-print "Drawing Background Wall..."
+show "Drawing Background Wall..."
 // Draw background wall
 Draw.rect(0, 0, 800, 800, "url(#bgGrad)")
 
 // Draw Window Area
-print "Drawing Window and Night Sky..."
+show "Drawing Window and Night Sky..."
 
 // Sky base
 Draw.rect(150, 80, 500, 340, "url(#skyGrad)")
@@ -154,7 +154,7 @@ Draw.rect(130, 415, 540, 15, "#181d30") // Sill top
 Draw.rect(140, 430, 520, 10, "#0a0b12") // Sill bevel shadow
 
 // Draw Black Cat Silhouette on windowsill (Positioned at x: 210 to not be hidden by the laptop screen)
-print "Drawing Black Cat..."
+show "Drawing Black Cat..."
 Draw.ellipse(210, 370, 22, 35, "#06070a") // Body
 Draw.circle(210, 325, 14, "#06070a") // Head
 Draw.polygon("199,318 200,305 207,314", "#06070a") // Left Ear
@@ -183,7 +183,7 @@ Draw.path("M 228,350 A 22,35 0 0,1 231,390", "none", {
 })
 
 // Draw Desk in foreground
-print "Drawing Desk and Screen Ambient Glow..."
+show "Drawing Desk and Screen Ambient Glow..."
 Draw.rect(0, 520, 800, 280, "url(#deskGrad)")
 Draw.line(0, 520, 800, 520, "#1c2333", {"stroke-width": 2}) // Bevel top highlight
 
@@ -194,7 +194,7 @@ Draw.polygon("270,590 530,590 760,800 40,800", "url(#deskGlowGrad)", {
 })
 
 // Draw Laptop
-print "Drawing Laptop..."
+show "Drawing Laptop..."
 
 // Laptop lid (outer bezel)
 Draw.polygon("270,390 530,390 540,590 260,590", "#1e293b")
@@ -267,7 +267,7 @@ Draw.polygon("160,710 640,710 635,716 165,716", "#0f172a")
 Draw.polygon("150,716 650,716 630,724 170,724", "#020306", {"opacity": 0.85})
 
 // Draw Accessories
-print "Drawing Coffee Mug and Steam..."
+show "Drawing Coffee Mug and Steam..."
 
 // Mug handle
 Draw.path("M 105 655 C 90 655, 90 680, 105 680", "none", {"stroke": "#1f2937", "stroke-width": 4.5, "stroke-linecap": "round"})
@@ -297,7 +297,7 @@ Draw.path("M 124 640 Q 130 625, 118 615 T 124 595", "none", {
   "class": "steam-line"
 })
 
-print "Drawing Desk Succulent Plant..."
+show "Drawing Desk Succulent Plant..."
 
 // Succulent pot shadow
 Draw.ellipse(680, 690, 16, 5, "#020306", {"opacity": 0.6})
@@ -319,7 +319,7 @@ Draw.polygon("680,650 692,622 686,644", "#34d399") // middle leaf right
 Draw.line(665, 650, 670, 690, "#00f2fe", {"stroke-width": 1.5, "opacity": 0.5, "filter": "url(#glow)"})
 Draw.polygon("680,650 660,630 670,642", "#00f2fe", {"opacity": 0.35, "filter": "url(#glow)"})
 
-print "Saving SVG file..."
+show "Saving SVG file..."
 
 // Save SVG file
 let dirpath = "playground/svgs"
@@ -328,14 +328,14 @@ let filepath = "playground/svgs/laptop_late_night.svg"
 try {
   let created = make_dir(dirpath)
   if created {
-    print "Directory verified/created: " dirpath
+    show "Directory verified/created:" dirpath
   }
   let success = Draw.save_svg(filepath, 800, 800)
   if success {
-    print "Successfully generated and saved SVG to: " filepath
+    show "Successfully generated and saved SVG to: " + filepath
   } else {
-    print "Failed to save SVG"
+    show "Failed to save SVG"
   }
 } catch (err) {
-  print "Error writing SVG file: " err
+  show "Error writing SVG file:" str(err)
 }

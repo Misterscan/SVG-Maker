@@ -90,8 +90,8 @@ sesi --cli -l <file>.sesi
 Inline code evaluation (useful for quick syntax checks):
 
 ```bash
-npm run eval "print 'Hello from Sesi'"
-sesi -e "print 'Hello from Sesi'"
+npm run eval "show 'Hello from Sesi'"
+sesi -e "show 'Hello from Sesi'"
 ```
 
 ### Generating an SVG from a Prompt (CLI)

@@ -8,11 +8,11 @@
 
 // 1. Variables and Types
 let language = "Sesi"
-let version = "1.6.4"
+let version = "1.8.5"
 let features = ["Reasoning", "Embedded DB", "SVG Drawing", "Audio Synthesis"]
 
-print "Welcome to" language "version" version "!"
-print "----------------------------------------"
+show "Welcome to" language "version" version "!"
+show "----------------------------------------"
 
 // 2. Command-Line Arguments & Interactive Input
 let userName = ""
@@ -22,8 +22,8 @@ if len(args) > 0 {
   userName = input("Please enter your name to begin: ")
 }
 
-print "Hello," userName "! Let's explore some Sesi syntax."
-print ""
+show "Hello," userName "! Let's explore some Sesi syntax."
+show ""
 
 // 3. Functions
 fn greet_user(name: string, lang: string) -> string {
@@ -32,22 +32,22 @@ fn greet_user(name: string, lang: string) -> string {
 }
 
 let greeting = greet_user(userName, language)
-print greeting
-print ""
+show greeting
+show ""
 
 // 4. Loops and Collections
-print "Here are some cool features of Sesi:"
+show "Here are some cool features of Sesi:"
 for feature in features {
-  print " - " feature
+  show " - " feature
 }
-print ""
+show ""
 
 // 5. Numeric Ranges (starts at 1, goes up to but excluding 4)
-print "Counting up to 3:"
+show "Counting up to 3:"
 for i = 1 to 4 {
-  print "Count:" i
+  show "Count:" i
 }
-print ""
+show ""
 
 // 6. Prompt Blocks (Sesi's unique string composition)
 let topic = "Sesi Programming"
@@ -55,4 +55,4 @@ prompt welcomeMessage {"Topic: " topic "
 User: " userName "
 Status: Ready for experimentation!"}
 
-print welcomeMessage
+show welcomeMessage

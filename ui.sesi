@@ -1,4 +1,4 @@
-allow "helpers/safe" in with Safe
+allow "helpers/safe" in as Safe
 allow "SesiDo/build" in with {createSVG}
 
 set_alias("SesiDo-Flash", "gemini-3-flash-preview")
@@ -32,7 +32,7 @@ fn extractGeneratedSvgPath(outputText) {
 }
 
 async fn handleRequest(req) {
-  print "Request:" req.method req.path
+  show "Request:" req.method req.path
   
   if req.method == "GET" && req.path == "/" {
     try {
@@ -65,7 +65,7 @@ async fn handleRequest(req) {
       }
       
       // Append render block to extract the SVG from standard output
-      finalCode = finalCode + "\n\ntry {\n  print \"===SVG_START===\"\n  print Draw.render(" + str(width) + ", " + str(height) + ")\n  print \"===SVG_END===\"\n} catch (err) {\n  print \"Render failed:\" err\n}\n"
+      finalCode = finalCode + "\n\ntry {\n  show \"===SVG_START===\"\n  show Draw.render(" + str(width) + ", " + str(height) + ")\n  show \"===SVG_END===\"\n} catch (err) {\n  show \"Render failed:\" err\n}\n"
       
       let tempFile = "temp_draw.sesi"
       Safe.writeFile(tempFile, finalCode)
@@ -220,15 +220,15 @@ async fn handleRequest(req) {
   }
 }
 
-print "=========================================================="
-print "🚀 Sesi SVG Studio Server is starting..."
-print "=========================================================="
+show "=========================================================="
+show "🚀 Sesi SVG Studio Server is starting..."
+show "=========================================================="
 
 let server = listen(PORT, handleRequest)
 try {
   open("http://localhost:" + str(PORT))
 } catch (e) {
-  print "Error opening browser:" e
+  show "Error opening browser:" e
 }
 
 let end = input("Press Enter to stop the server...\n")

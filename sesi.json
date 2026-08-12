@@ -2,6 +2,8 @@
   "name": "SVG Maker",
   "version": "1.1.0",
   "dependencies": {
-    "SesiDo": "Misterscan/SesiDo#v1.2.0"
+    "SesiDo": "Misterscan/SesiDo#v1.2.5",
+    "math": "Misterscan/math#v1.0.1",
+    "shell-automation": "Misterscan/shell-automation#v1.0.3"
   }
 }
