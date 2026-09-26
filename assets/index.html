@@ -5,535 +5,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sesi SVG Studio</title>
-  <!-- Modern Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet">
-
-  <style>
-    /* Premium CSS Reset & Vars */
-    :root {
-      --bg-dark: #07070d;
-      --bg-card: rgba(17, 17, 34, 0.65);
-      --bg-editor: #0c0c16;
-      --border-color: rgba(255, 255, 255, 0.08);
-      --border-focus: rgba(99, 102, 241, 0.5);
-      --text-main: #f4f4f6;
-      --text-muted: #94a3b8;
-
-      /* Vibrant gradients */
-      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-      --accent-cyan: #06b6d4;
-      --accent-magenta: #d946ef;
-      --accent-indigo: #6366f1;
-      --success: #10b981;
-      --error: #f43f5e;
-      --warning: #f59e0b;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: var(--bg-dark);
-      background-image:
-        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 45%);
-      color: var(--text-main);
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Header Styling */
-    header {
-      background: rgba(10, 10, 22, 0.85);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border-color);
-      padding: 14px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 100;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-logo {
-      width: 32px;
-      height: 32px;
-      display: block;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-
-    .brand-title {
-      font-weight: 800;
-      font-size: 20px;
-      letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .server-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.04);
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid var(--border-color);
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: var(--success);
-      box-shadow: 0 0 10px var(--success);
-    }
-
-    .status-dot.loading {
-      background-color: var(--warning);
-      box-shadow: 0 0 10px var(--warning);
-      animation: pulse 1.5s infinite ease-in-out;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 0.5;
-      }
-
-      50% {
-        opacity: 1;
-      }
-    }
-
-    /* Workspace Main Layout */
-    .workspace {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 460px 1fr;
-      height: calc(100vh - 61px);
-    }
-
-    /* Left Sidebar: Controls & Code Editor */
-    .sidebar {
-      background: rgba(10, 10, 20, 0.5);
-      border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    .panel-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(15, 15, 30, 0.3);
-    }
-
-    .panel-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Preset & Sizing controls */
-    .controls-group {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background: rgba(10, 10, 20, 0.2);
-    }
-
-    .control-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .stacked-control {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .control-field {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .control-field label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-    }
-
-    .select-input,
-    .number-input,
-    .text-input {
-      background: #121222;
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 14px;
-      transition: all 0.2s;
-      outline: none;
-    }
-
-    .select-input:focus,
-    .number-input:focus,
-    .text-input:focus {
-      border-color: var(--accent-indigo);
-      box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
-    }
-
-    /* Editor Section */
-    .editor-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      background: var(--bg-editor);
-      min-height: 0;
-    }
-
-    .editor-wrapper {
-      flex: 1;
-      position: relative;
-      display: flex;
-      overflow: hidden;
-      min-height: 0;
-    }
-
-    .line-numbers {
-      width: 48px;
-      padding: 16px 0;
-      text-align: right;
-      padding-right: 12px;
-      background: rgba(0, 0, 0, 0.2);
-      border-right: 1px solid var(--border-color);
-      color: #4b5563;
-      font-family: 'Fira Code', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      user-select: none;
-      overflow: hidden;
-    }
-
-    .code-textarea {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: #e2e8f0;
-      font-family: 'Fira Code', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      padding: 16px;
-      resize: none;
-      outline: none;
-      tab-size: 2;
-      overflow-y: auto;
-      overflow-x: auto;
-      white-space: pre;
-    }
-
-
-
-    /* Render Button Row */
-    .action-row {
-      padding: 16px 20px;
-      background: rgba(10, 10, 20, 0.6);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      gap: 10px;
-      flex-direction: column;
-    }
-
-    .render-btn {
-      width: 100%;
-      background: var(--primary-gradient);
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 15px;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
-    }
-
-    .render-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 22px rgba(99, 102, 241, 0.5);
-    }
-
-    .render-btn:active {
-      transform: translateY(0);
-    }
-
-    .secondary-btn {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 13px 14px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 14px;
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .secondary-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--accent-cyan);
-      color: var(--accent-cyan);
-    }
-
-    /* Right Main Panel: Preview & Canvas */
-    .preview-panel {
-      display: grid;
-      grid-template-rows: 1fr 180px;
-      height: 100%;
-      overflow: hidden;
-      background: radial-gradient(circle at center, #111124 0%, #080811 100%);
-    }
-
-    .canvas-container {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px;
-      overflow: hidden;
-    }
-
-    /* Transparent grid pattern card */
-    .canvas-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 16px;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-    }
-
-    .checkerboard {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-image:
-        linear-gradient(45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
-        linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.02) 75%),
-        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.02) 75%);
-      background-size: 20px 20px;
-      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-      z-index: 1;
-    }
-
-    .svg-wrapper {
-      position: relative;
-      z-index: 2;
-      max-width: 95%;
-      max-height: 95%;
-      transition: transform 0.1s ease-out;
-      transform-origin: center center;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .svg-wrapper svg {
-      display: block;
-      width: 100%;
-      height: 100%;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    }
-
-    /* Floating Viewport Controls */
-    .canvas-actions {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 10;
-      display: flex;
-      gap: 8px;
-    }
-
-    .action-btn {
-      background: rgba(255, 255, 255, 0.06);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .action-btn:hover {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: var(--accent-cyan);
-      color: var(--accent-cyan);
-      transform: translateY(-1px);
-    }
-
-    .action-btn svg {
-      width: 20px;
-      height: 20px;
-      fill: currentColor;
-    }
-
-    /* Terminal logs at bottom */
-    .console-panel {
-      background: rgba(5, 5, 12, 0.95);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      font-family: 'Fira Code', monospace;
-    }
-
-    .console-header {
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid var(--border-color);
-      padding: 8px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .console-logs {
-      flex: 1;
-      padding: 12px 16px;
-      overflow-y: auto;
-      font-size: 12px;
-      line-height: 1.5;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .log-line {
-      white-space: pre-wrap;
-    }
-
-    .log-info {
-      color: var(--text-muted);
-    }
-
-    .log-success {
-      color: var(--success);
-    }
-
-    .log-error {
-      color: var(--error);
-    }
-
-    .log-stdout {
-      color: #e2e8f0;
-    }
-
-    /* Loading Overlay */
-    .loading-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(7, 7, 13, 0.7);
-      backdrop-filter: blur(4px);
-      z-index: 100;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-    }
-
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 3px solid rgba(99, 102, 241, 0.2);
-      border-top-color: var(--accent-indigo);
-      border-radius: 50%;
-      animation: spin 1s infinite linear;
-    }
-
-    @keyframes spin {
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    .loading-text {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-  <!-- Header -->
   <header>
     <div class="brand">
       <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
@@ -602,7 +79,10 @@
         <polygon points="395,190 415,170 422,177 402,197" fill="#1e293b" />
         <line x1="360" y1="160" x2="385" y2="181" stroke="#ffffff" stroke-width="1.50" opacity="0.90" />
       </svg>
-      <div class="brand-title">Sesi SVG Studio</div>
+      <div class="brand-copy">
+        <div class="brand-title">Sesi SVG Studio</div>
+        <div class="brand-subtitle">Draw with code</div>
+      </div>
     </div>
     <div class="server-status">
       <div class="status-dot" id="statusDot"></div>
@@ -610,25 +90,20 @@
     </div>
   </header>
 
-  <!-- Workspace Grid -->
-  <div class="workspace">
-
-    <!-- Left Sidebar -->
-    <div class="sidebar">
+  <main class="workspace">
+    <section class="sidebar" aria-label="Drawing editor">
       <div class="panel-header">
         <div class="panel-title">
-          <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24">
-            <path
-              d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
+          <svg style="width:17px;height:17px;fill:currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
           </svg>
           Editor Configuration
         </div>
       </div>
 
-      <!-- Dimension and Preset Selection -->
       <div class="controls-group">
         <div class="stacked-control">
-          <label for="svgPrompt" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted)">SVG Prompt</label>
+          <label for="svgPrompt">SVG Prompt</label>
           <input id="svgPrompt" class="text-input" type="text" placeholder="A neon owl in a storm of stars">
         </div>
         <div class="control-row">
@@ -655,102 +130,85 @@
         </div>
       </div>
 
-      <!-- Sesi Code Editor -->
       <div class="editor-container">
+        <div class="editor-heading">
+          <span>drawing.sesi</span>
+          <span>SESI</span>
+        </div>
         <div class="editor-wrapper">
           <div class="line-numbers" id="lineNumbers">1</div>
-          <textarea id="codeEditor" class="code-textarea" spellcheck="false" autocomplete="off"
-            placeholder="// Write Sesi drawing code here..."></textarea>
+          <textarea id="codeEditor" class="code-textarea" spellcheck="false" autocomplete="off" aria-label="Sesi drawing code" placeholder="// Write Sesi drawing code here..."></textarea>
         </div>
       </div>
 
-
-
-      <!-- Action Row -->
       <div class="action-row">
         <button class="secondary-btn" id="generateSvgBtn">
-          <svg style="width:18px;height:18px;fill:currentColor" viewBox="0 0 24 24">
+          <svg style="width:18px;height:18px;fill:currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M17,1.01L7,1C5.9,1 5,1.9 5,3V21C5,22.1 5.9,23 7,23H17C18.1,23 19,22.1 19,21V7L17,1.01M12,20C9.24,20 7,17.76 7,15C7,12.24 9.24,10 12,10C14.76,10 17,12.24 17,15C17,17.76 14.76,20 12,20M13.5,13H11V15.5H13.5V18H15V15.5H17.5V14H15V11.5H13.5V13Z" />
           </svg>
           Generate SVG from Prompt
         </button>
         <button class="render-btn" id="renderBtn">
-          <svg style="width:18px;height:18px;fill:currentColor" viewBox="0 0 24 24">
+          <svg style="width:18px;height:18px;fill:currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
           </svg>
           Render Drawing
         </button>
       </div>
-    </div>
+    </section>
 
-    <!-- Right Preview Panel -->
-    <div class="preview-panel">
+    <section class="preview-panel" aria-label="SVG preview and execution output">
       <div class="canvas-container">
+        <div class="stage-label">Live preview</div>
 
-        <!-- Viewport controls -->
-        <div class="canvas-actions">
-          <button class="action-btn" id="zoomInBtn" title="Zoom In">
-            <svg viewBox="0 0 24 24">
-              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-            </svg>
+        <div class="canvas-actions" aria-label="Preview controls">
+          <button class="action-btn" id="zoomInBtn" title="Zoom In" aria-label="Zoom In">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" /></svg>
           </button>
-          <button class="action-btn" id="zoomOutBtn" title="Zoom Out">
-            <svg viewBox="0 0 24 24">
-              <path d="M19,13H5V11H19V13Z" />
-            </svg>
+          <button class="action-btn" id="zoomOutBtn" title="Zoom Out" aria-label="Zoom Out">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19,13H5V11H19V13Z" /></svg>
           </button>
-          <button class="action-btn" id="resetZoomBtn" title="Reset View">
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M12,4c-4.41,0-8,3.59-8,8s3.59,8,8,8,8-3.59,8-8-3.59-8-8-8zm0,14c-3.31,0-6-2.69-6-6s2.69-6,6-6,6,2.69,6,6-2.69,6-6,6z" />
-            </svg>
+          <button class="action-btn" id="resetZoomBtn" title="Reset View" aria-label="Reset View">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12,4c-4.41,0-8,3.59-8,8s3.59,8,8,8,8-3.59,8-8-3.59-8-8-8zm0,14c-3.31,0-6-2.69-6-6s2.69-6,6-6,6,2.69,6,6-2.69,6-6,6z" /></svg>
           </button>
-          <button class="action-btn" id="copySvgBtn" title="Copy SVG Code">
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
-            </svg>
+          <button class="action-btn" id="copySvgBtn" title="Copy SVG Code" aria-label="Copy SVG Code">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" /></svg>
           </button>
-          <button class="action-btn" id="downloadBtn" title="Download SVG File">
-            <svg viewBox="0 0 24 24">
-              <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
-            </svg>
+          <button class="action-btn" id="downloadBtn" title="Download SVG File" aria-label="Download SVG File">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
           </button>
         </div>
 
         <div class="canvas-card">
           <div class="checkerboard"></div>
           <div class="svg-wrapper" id="svgWrapper">
-            <div style="color:var(--text-muted);font-size:14px;z-index:10;text-align:center">
-              <svg style="width:48px;height:48px;margin-bottom:12px;opacity:0.3;fill:currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,19H5V5H19V19M13.96,12.29L11.21,15.83L9.25,13.47L6.5,17H17.5L13.96,12.29Z" />
+            <div class="empty-preview">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,19H5V5H19V19M13.96,12.29L11.21,15.83L9.25,13.47L6.5,17H17.5L13.96,12.29Z" />
               </svg>
               <div>Your SVG drawing will render here</div>
             </div>
           </div>
         </div>
 
-        <!-- Inner loading indicator -->
         <div class="loading-overlay" id="loadingOverlay">
           <div class="spinner"></div>
           <div class="loading-text" id="loadingText">Running Sesi Script...</div>
         </div>
       </div>
 
-      <!-- Console logs -->
       <div class="console-panel">
         <div class="console-header">
           <span>Execution Output Terminal</span>
-          <span style="cursor:pointer" id="clearConsoleBtn">Clear Logs</span>
+          <span id="clearConsoleBtn" role="button" tabindex="0">Clear Logs</span>
         </div>
         <div class="console-logs" id="consoleLogs">
           <div class="log-line log-info">Studio terminal ready. Select a preset or type Sesi code to begin drawing.
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
   <script>
     // Constants & State
@@ -758,8 +216,8 @@
     let currentSvgData = "";
 
     const PRESETS = {
-      neon_waves: `allow "std/draw" in with Draw
-allow "std/math" in with Math
+      neon_waves: `allow "std/draw" in as Draw
+allow "std/math" in as Math
 
 Draw.rect(0, 0, 800, 600, "#09090e")
 
@@ -806,8 +264,8 @@ while i < waveCount {
   i = i + 1
 }`,
 
-      cyber_sunset: `allow "std/draw" in with Draw
-allow "std/math" in with Math
+      cyber_sunset: `allow "std/draw" in as Draw
+allow "std/math" in as Math
 
 // Dark starry sky background
 Draw.rect(0, 0, 800, 600, "#0b0813")
@@ -858,7 +316,7 @@ for building in skyline {
   Draw.rect(bx, by, bw, bh, "#0b0813", {"stroke": "#f43f5e", "stroke-width": 1.5})
 }`,
 
-      custom: `allow "std/draw" in with Draw
+      custom: `allow "std/draw" in as Draw
 
 // Start drawing your custom SVG here
 Draw.rect(0, 0, 800, 600, "#111124")
@@ -926,6 +384,28 @@ Draw.text(400, 310, "Sesi Draw", 24, "#ffffff", {"text-anchor": "middle", "font-
     clearLogsBtn.addEventListener('click', () => {
       consoleLogs.innerHTML = "";
     });
+
+    function displaySvg(svgText) {
+      svgWrapper.innerHTML = svgText;
+
+      const svg = svgWrapper.querySelector(':scope > svg');
+      if (!svg) return;
+
+      if (!svg.hasAttribute('viewBox')) {
+        const width = parseFloat(svg.getAttribute('width'));
+        const height = parseFloat(svg.getAttribute('height'));
+        if (Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0) {
+          svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        }
+      }
+
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+      zoomLevel = 1.0;
+      svgWrapper.style.transform = 'scale(1)';
+    }
 
     // Zoom and Pan Controls
     document.getElementById("zoomInBtn").addEventListener('click', () => {
@@ -1012,7 +492,7 @@ Draw.text(400, 310, "Sesi Draw", 24, "#ffffff", {"text-anchor": "middle", "font-
             }
           } else if (data.svg) {
             currentSvgData = data.svg;
-            svgWrapper.innerHTML = data.svg;
+            displaySvg(data.svg);
             logToTerminal("Sesi code compiled and executed successfully!", "success");
             if (data.output) {
               logToTerminal("Script stdout:\n" + data.output, "stdout");
@@ -1030,7 +510,10 @@ Draw.text(400, 310, "Sesi Draw", 24, "#ffffff", {"text-anchor": "middle", "font-
     }
 
     function generateSvgFromPrompt() {
-      const description = svgPrompt.value.trim();
+      let description = svgPrompt.value.trim();
+      const width = parseInt(canvasWidth.value) || 800;
+      const height = parseInt(canvasHeight.value) || 600;
+      description += ` (width: ${width}, height: ${height})`;
       if (!description) {
         logToTerminal("Enter a prompt before generating an SVG.", "error");
         return;
@@ -1064,7 +547,7 @@ Draw.text(400, 310, "Sesi Draw", 24, "#ffffff", {"text-anchor": "middle", "font-
 
           if (data.svg) {
             currentSvgData = data.svg;
-            svgWrapper.innerHTML = data.svg;
+            displaySvg(data.svg);
             if (data.code) {
               editor.value = data.code;
               updateLineNumbers();

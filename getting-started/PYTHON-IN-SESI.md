@@ -10,7 +10,7 @@ To execute basic Python code, call `python` with a string containing your Python
 
 ```sesi
 // Run simple inline Python code
-let output = python("show('Hello from Python!')")
+let output = python("print('Hello from Python!')")
 show output // Hello from Python!
 ```
 
@@ -24,11 +24,11 @@ Sesi supports passing structured data or parameters into the Python sub-process 
 The second argument is automatically serialized to JSON and stored in the `SESI_ARGS` environment variable. You can load this variable in your Python code using `json.loads(os.environ['SESI_ARGS'])`.
 
 ```sesi
-let data = {"username": "Alice", "score": 98}
+let data = {username: "Alice", score: 98}
 let response = python("
 import os, json
 args = json.loads(os.environ['SESI_ARGS'])
-show('User:', args['username'], 'Score:', args['score'])
+print('User:', args['username'], 'Score:', args['score'])
 ", data)
 
 show response // User: Alice Score: 98
@@ -41,8 +41,8 @@ If you pass an **array** as the second argument, individual elements are stringi
 let names = ["Alice", "Bob"]
 let response = python("
 import sys
-show('First:', sys.argv[1])
-show('Second:', sys.argv[2])
+print('First:', sys.argv[1])
+print('Second:', sys.argv[2])
 ", names)
 
 show response
@@ -62,7 +62,7 @@ Writing long Python snippets inside a Sesi string literal can be hard to format 
 ```sesi
 // Load and execute an external python script file
 let scriptContent = read_file("scripts/data_analysis.py")
-let result = python(scriptContent, {"threshold": 10})
+let result = python(scriptContent, {threshold: 10})
 show result
 ```
 
@@ -110,7 +110,7 @@ If Sesi is running in Safe Mode (activated via the `SESI_SAFE_MODE=true` environ
 ```sesi
 // If Safe Mode is enabled:
 try {
-  python("show('Unsafe')")
+  python("print('Unsafe')")
 } catch (err) {
   show "Caught sandbox violation:" err
   // Security Violation: Operation "python" is blocked in Safe Mode.

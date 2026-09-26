@@ -77,14 +77,14 @@ To run any `.sesi` script from the command line:
 
 ```bash
 npm run sesi <file>.sesi
-sesi --cli <file>.sesi
+sesi <file>.sesi
 ```
 
 For scripts that use external libraries, file I/O or `exec()` (like the Web server):
 
 ```bash
 npm run local <file>.sesi
-sesi --cli -l <file>.sesi
+sesi -l <file>.sesi
 ```
 
 Inline code evaluation (useful for quick syntax checks):
@@ -100,7 +100,7 @@ sesi -e "show 'Hello from Sesi'"
 
 ```bash
 npm run svg-gen
-sesi --cli -l svg-gen.sesi
+sesi -l svg-gen.sesi
 ```
 
 Run it with an inline description to skip the prompt:
@@ -118,7 +118,7 @@ If no description is given, it asks for one interactively and falls back to a de
 The `std/draw` module provides a full SVG drawing API. Import it at the top of any script:
 
 ```sesi
-allow "std/draw" in with Draw
+allow "std/draw" in as Draw
 ```
 
 ### Core Primitives
@@ -191,7 +191,7 @@ Draw.clear()                         // resets the draw buffer
 
 | Command                                            | Description            |
 | -------------------------------------------------- | ---------------------- |
-| `npm run lint` or `sesi bin/lint.sesi --cli <file>.sesi` | Run the Sesi linter    |
+| `npm run lint` or `sesi bin/lint.sesi <file>.sesi` | Run the Sesi linter    |
 | `npm run encrypt <file>` or `sesi -enc <file>`     | Encrypt a `.sesi` file |
 | `npm run decrypt <file>` or `sesi -dec <file>`     | Decrypt a `.sesi` file |
 

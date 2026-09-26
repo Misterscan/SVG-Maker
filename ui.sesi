@@ -1,10 +1,20 @@
 allow "helpers/safe" in as Safe
 allow "SesiDo/build" in with {createSVG}
+allow "bin/ansi" in as TERM
 
 set_alias("SesiDo-Flash", "gemini-3-flash-preview")
 
 let PORT = 8080
 
+/**
+  Extracts the generated SVG path from the output text.
+
+  Parameters:
+  - outputText: The text output from which to extract the SVG path.
+  
+  Returns:
+  - The extracted SVG path as a string, or an empty string if not found.
+*/
 fn extractGeneratedSvgPath(outputText) {
   if outputText == null || outputText == "" {
     return ""
@@ -31,6 +41,20 @@ fn extractGeneratedSvgPath(outputText) {
   return remainder
 }
 
+/**
+  Handles incoming HTTP requests for the SVG Maker application.
+
+  Parameters:
+  - req: The HTTP request object containing method, path, headers, and body.
+
+  Endpoints:
+  - GET /: Serves the main HTML page for the SVG Maker application.
+  - GET /style.css: Serves the stylesheet used by the main page.
+  - POST /render: Accepts SVG generation requests with code, width, and height parameters. Returns the generated SVG and execution output.
+
+  Returns:
+  - A response object with status, headers, and body.
+*/
 async fn handleRequest(req) {
   show "Request:" req.method req.path
   
@@ -38,16 +62,35 @@ async fn handleRequest(req) {
     try {
       let html = Safe.readFile("assets/index.html")
       return {
-        "status": 200,
-        "headers": {
+        status: 200,
+        headers: {
           "Content-Type": "text/html"
         },
-        "body": html
+        body: html
       }
     } catch (err) {
       return {
-        "status": 500,
-        "body": "Error loading svg_studio.html: " + str(err)
+        status: 500,
+        body: "Error loading assets/index.html: " + str(err)
+      }
+    }
+  }
+
+  if req.method == "GET" && req.path == "/style.css" {
+    try {
+      let css = Safe.readFile("assets/style.css")
+      return {
+        status: 200,
+        headers: {
+          "Content-Type": "text/css; charset=utf-8",
+          "Cache-Control": "no-cache"
+        },
+        body: css
+      }
+    } catch (err) {
+      return {
+        status: 500,
+        body: "Error loading assets/style.css: " + str(err)
       }
     }
   }
@@ -55,23 +98,25 @@ async fn handleRequest(req) {
   if req.method == "POST" && req.path == "/render" {
     try {
       let payload = from_json(req.body)
-      let code = payload["code"]
-      let width = payload["width"]
-      let height = payload["height"]
+      let c = payload.code
+      let w = payload.width
+      let h = payload.height
       
-      let finalCode = code
-      if !contains(code, "std/draw") {
-        finalCode = "allow \"std/draw\" in with Draw\n" + finalCode
+      let finalCode = c
+      if !contains(c, "std/draw") {
+        finalCode = "allow \"std/draw\" in as Draw\n" + finalCode
       }
       
       // Append render block to extract the SVG from standard output
-      finalCode = finalCode + "\n\ntry {\n  show \"===SVG_START===\"\n  show Draw.render(" + str(width) + ", " + str(height) + ")\n  show \"===SVG_END===\"\n} catch (err) {\n  show \"Render failed:\" err\n}\n"
+      finalCode = finalCode + "\n\ntry {\n  show \"===SVG_START===\"\n  show Draw.render(" + str(w) + ", " + str(h) + ")\n  show \"===SVG_END===\"\n} catch (err) {\n  show \"Render failed:\" err\n}\n"
       
       let tempFile = "temp_draw.sesi"
       Safe.writeFile(tempFile, finalCode)
       
       let out = ""
-      try {out = sesi(tempFile, true); trash(tempFile, true)} catch (e) {}
+      try {out = run("sesi " + tempFile); trash(tempFile, true)} catch (e) {
+        try { trash(tempFile, true) } catch (err2) {}
+      }
       
       let svg = ""
       let error = null
@@ -106,35 +151,35 @@ async fn handleRequest(req) {
       
       if error != null {
         return {
-          "status": 200,
-          "headers": {
+          status: 200,
+          headers: {
             "Content-Type": "application/json"
           },
-          "body": to_json({
-            "error": error,
-            "output": cleanOut
+          body: to_json({
+            error: error,
+            output: cleanOut
           })
         }
       }
       
       return {
-        "status": 200,
-        "headers": {
+        status: 200,
+        headers: {
           "Content-Type": "application/json"
         },
-        "body": to_json({
-          "svg": svg,
-          "output": cleanOut
+        body: to_json({
+          svg: svg,
+          output: cleanOut
         })
       }
     } catch (err) {
       return {
-        "status": 200,
-        "headers": {
+        status: 200,
+        headers: {
           "Content-Type": "application/json"
         },
-        "body": to_json({
-          "error": "Failed to run Sesi script: " + str(err)
+        body: to_json({
+          error: "Failed to run Sesi script: " + str(err)
         })
       }
     }
@@ -144,27 +189,32 @@ async fn handleRequest(req) {
     try {
       let payload = from_json(req.body)
       let description = ""
-      if payload["description"] != null {
-        description = trim(payload["description"])
+      if payload.description != null {
+        description = trim(payload.description)
       }
 
       if description == "" {
         return {
-          "status": 200,
-          "headers": {
+          status: 200,
+          headers: {
             "Content-Type": "application/json"
           },
-          "body": to_json({
-            "error": "Please provide an SVG description."
+          body: to_json({
+            error: "Please provide an SVG description."
           })
         }
       }
 
       let out = ""
+      let tempGenerateFile = "temp_generate_svg_" + str(time()) + ".sesi"
+      let requestCode = "allow \"SesiDo/build\" in with {createSVG}\nset_alias(\"SesiDo-Flash\", \"gemini-3-flash-preview\")\ntry {\n  show createSVG({query: " + to_json(description) + "})\n} catch (e) {\n  show \"Error running createSVG: \" + str(e)\n}\n"
       try {
-        out = createSVG({"description": description})
+        Safe.writeFile(tempGenerateFile, requestCode)
+        out = run("sesi -l " + tempGenerateFile)
+        trash(tempGenerateFile, true)
       } catch (e) {
-        out = "Error running createSVG: " + str(e)
+        try { trash(tempGenerateFile, true) } catch (cleanupError) {}
+        out = "Error running SVG generator: " + str(e)
       }
 
       let svg = ""
@@ -176,53 +226,50 @@ async fn handleRequest(req) {
 
       if svg == null || svg == "" {
         return {
-          "status": 200,
-          "headers": {
+          status: 200,
+          headers: {
             "Content-Type": "application/json"
           },
-          "body": to_json({
-            "error": "Generated SVG file was not found or was empty.",
-            "output": out,
-            "outputPath": outputPath
+          body: to_json({
+            error: "Generated SVG file was not found or was empty.",
+            output: out,
+            outputPath: outputPath
           })
         }
       }
 
       return {
-        "status": 200,
-        "headers": {
+        status: 200,
+        headers: {
           "Content-Type": "application/json"
         },
-        "body": to_json({
-          "svg": svg,
-          "output": out,
-          "outputPath": outputPath
+        body: to_json({
+          svg: svg,
+          output: out,
+          outputPath: outputPath
         })
       }
     } catch (err) {
       return {
-        "status": 200,
-        "headers": {
+        status: 200,
+        headers: {
           "Content-Type": "application/json"
         },
-        "body": to_json({
-          "error": "Failed to generate SVG: " + str(err)
+        body: to_json({
+          error: "Failed to generate SVG: " + str(err)
         })
       }
     }
   }
   
-
-  
   return {
-    "status": 404,
-    "body": "Not found"
+    status: 404,
+    body: "Not found"
   }
 }
 
-show "=========================================================="
-show "🚀 Sesi SVG Studio Server is starting..."
-show "=========================================================="
+
+TERM.box("🚀 Sesi SVG Studio Server is starting...")
 
 let server = listen(PORT, handleRequest)
 try {

@@ -8,6 +8,7 @@
   Usage:
     sesi css-flatten.sesi [input_file_or_dir] [output_dir]
 */
+allow "safe" in as safe
 
 let input_target = "style.css"
 let output_dir = "minified"
@@ -18,7 +19,7 @@ if len(args) > 1 { output_dir = args[1] }
 
 // Ensure output directory exists safely
 try {
-  make_dir(output_dir)
+  safe.newDir(output_dir)
 } catch (err) {}
 
 fn minify_css(css: string) -> string {
@@ -38,7 +39,7 @@ fn minify_css(css: string) -> string {
         
         // Inspect the comment: does it start with a JSON bracket?
         let trimmed_body = trim(comment_body)
-        let first_char = slice(trimmed_body, 0, 1)
+        let first_char = trunc(trimmed_body, 1)
         
         if first_char == "{" {
           // Reconstruct the exact comment and save it securely
@@ -113,10 +114,10 @@ fn minify_css(css: string) -> string {
 fn process_file(in_path: string, out_path: string) {
   show "Processing:" in_path
   try {
-    let source_css = read_file(in_path)
+    let source_css = safe.read(in_path)
     show "Original size:" len(source_css) "bytes"
     let minified_css = minify_css(source_css)
-    let success = write_file(out_path, minified_css)
+    let success = safe.write(out_path, minified_css)
     
     if success {
       show "  -> Saved:" out_path "(" len(minified_css) "bytes )"
@@ -145,7 +146,7 @@ if ends_with(input_target, ".css") {
   show "Scanning directory:" input_target
   
   try {
-    let files = list_dir(input_target)
+    let files = safe.getFiles(input_target)
     let count = 0
     
     for file in files {

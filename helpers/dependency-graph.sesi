@@ -5,12 +5,12 @@ Usage:
     sesi helpers/dependency-graph.sesi <entry_file> [options]
 
 Options:
-    --svg <file>   Output a beautiful SVG flow diagram (default: dependency-graph.svg)
-    --json <file>  Save graph data in JSON format
-    --all          Include Sesi standard library modules (std/*)
-    --help         Show this help menu
+    svg <file>   Output a beautiful SVG flow diagram (default: dependency-graph.svg)
+    json <file>  Save graph data in JSON format
+    all          Include Sesi standard library modules (std/*)
+    help         Show this help menu
 */
-
+allow "safe" in as Safe
 allow "std/draw" in as Draw
 allow "std/math" in as Math
 
@@ -21,14 +21,14 @@ fn show_help() {
   show "  sesi helpers/dependency-graph.sesi <entry_file> [options]"
   show ""
   show "Options:"
-  show "  --svg <file>   Output a beautiful SVG flow diagram (default: dependency-graph.svg)"
-  show "  --json <file>  Save graph data in JSON format"
-  show "  --all          Include Sesi standard library modules (std/*)"
-  show "  --help         Show this help menu"
+  show "  svg <file>   Output a beautiful SVG flow diagram (default: dependency-graph.svg)"
+  show "  json <file>  Save graph data in JSON format"
+  show "  all          Include Sesi standard library modules (std/*)"
+  show "  help         Show this help menu"
   show ""
   show "Examples:"
   show "  sesi helpers/dependency-graph.sesi examples/main/16_modules.sesi"
-  show "  sesi helpers/dependency-graph.sesi main/tests/test_general_modules.sesi --all"
+  show "  sesi helpers/dependency-graph.sesi main/tests/test_general_modules.sesi all"
 }
 
 export fn get_dirname(path: string) -> string {
@@ -75,25 +75,16 @@ export fn normalize_path(path: string) -> string {
   return result
 }
 
-fn file_exists(path: string) -> bool {
+fn get_home_dir() -> string {
   try {
-    read_file(path)
-    return true
-  } catch (err) {
-    return false
-  }
-}
-
-fn get_home_dir() -> any {
-  try {
-    let out = exec("echo $HOME")
+    let out = env("HOME")
     if out != null {
       return trim(out)
     }
   } catch (e) {
   }
   try {
-    let out = exec("echo %USERPROFILE%")
+    let out = env("USERPROFILE")
     if out != null {
       return trim(out)
     }
@@ -102,16 +93,9 @@ fn get_home_dir() -> any {
   return null
 }
 
-fn get_sesi_path() -> any {
+fn get_sesi_path() -> string {
   try {
-    let out = exec("echo $SESI_PATH")
-    if out != null {
-      return trim(out)
-    }
-  } catch (e) {
-  }
-  try {
-    let out = exec("echo %SESI_PATH%")
+    let out = env("SESI_PATH")
     if out != null {
       return trim(out)
     }
@@ -162,7 +146,7 @@ fn resolve_path(source: string, importing_file: string) -> string {
   
   for d in search_dirs {
     let resolved = normalize_path(join_paths(d, filename))
-    if file_exists(resolved) {
+    if Safe.fileExists(resolved) {
       return resolved
     }
   }
@@ -170,7 +154,7 @@ fn resolve_path(source: string, importing_file: string) -> string {
   return normalize_path(join_paths(dir, filename))
 }
 
-export fn extract_module(line: string) -> any {
+export fn extract_module(line: string) -> string {
   let kw_pos = locate(line, "allow")
   let kw_len = 5
   if kw_pos == -1 {
@@ -225,7 +209,7 @@ fn scan_recursive(file_path: string, parent_file: string, options) {
   
   let content = ""
   try {
-    content = read_file(norm_path)
+    content = Safe.read(norm_path)
   } catch (err) {
     if parent_file != null {
       show "⚠️ Module file not found or unreadable:" norm_path " (imported by" parent_file ")"
@@ -300,7 +284,7 @@ fn detect_cycles_dfs(node: string, path_stack: object) {
   }
 }
 
-fn print_tree(node: string, prefix: string, is_last: bool, branch_visited: object) {
+fn show_tree(node: string, prefix: string, is_last: bool, branch_visited: object) {
   let connector = "├── "
   if is_last {
     connector = "└── "
@@ -341,7 +325,7 @@ fn print_tree(node: string, prefix: string, is_last: bool, branch_visited: objec
     while i < count {
       let dep = deps[i]
       let last = (i == count - 1)
-      print_tree(dep, next_prefix, last, new_branch)
+      show_tree(dep, next_prefix, last, new_branch)
       i = i + 1
     }
   }
@@ -356,7 +340,7 @@ if len(args) == 0 {
   let json_file = null
   let include_all = false
   
-  if args[0] == "--help" || args[0] == "-h" {
+  if args[0] == "--help" || args[0] == "help" {
     show_help()
   } else {
     entry_file = args[0]
@@ -365,7 +349,7 @@ if len(args) == 0 {
     let idx = 1
     while idx < len(args) {
       let opt = args[idx]
-      if opt == "--svg" {
+      if opt == "--svg" || opt == "svg" {
         if idx + 1 < len(args) {
           svg_file = args[idx + 1]
           idx = idx + 2
@@ -373,7 +357,7 @@ if len(args) == 0 {
           show "⚠️ Missing value for --svg"
           idx = idx + 1
         }
-      } else if opt == "--json" {
+      } else if opt == "--json" || opt == "json" {
         if idx + 1 < len(args) {
           json_file = args[idx + 1]
           idx = idx + 2
@@ -381,7 +365,7 @@ if len(args) == 0 {
           show "⚠️ Missing value for --json"
           idx = idx + 1
         }
-      } else if opt == "--all" {
+      } else if opt == "--all" || opt == "all" {
         include_all = true
         idx = idx + 1
       } else {
@@ -404,7 +388,7 @@ if len(args) == 0 {
     
     show ""
     show "📋 Dependency Tree:"
-    print_tree(norm_entry, "", true, {})
+    show_tree(norm_entry, "", true, {})
     
     // Build union of all nodes
     let node_set = {}
@@ -543,7 +527,7 @@ if len(args) == 0 {
     // Write JSON if requested
     if json_file != null {
       try {
-        write_file(json_file, to_json(graph))
+        Safe.json(json_file, graph)
         show "💾 Dependency graph JSON data saved to:" json_file
       } catch (err) {
         show "⚠️ Error writing JSON file:" json_file " (" str(err) ")"

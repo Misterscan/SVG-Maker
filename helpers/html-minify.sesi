@@ -8,19 +8,32 @@
   Usage:
     sesi html-minify.sesi [input_file_or_dir] [output_dir]
 */
+allow "safe" in as safe
 
 let input_target = "index.html"
 let output_dir = "minified"
 
-if len(args) > 0 { input_target = args[0] }
-if len(args) > 1 { output_dir = args[1] }
+/*
+  Run the command-line interface for the HTML minifier.
+  This function handles input arguments and ensures the output directory exists.
+*/
+fn runCLI() { // Wrapped in function to prevent accidental directory creation from exported module
+  if len(args) > 0 { input_target = args[0] }
+  if len(args) > 1 { output_dir = args[1] }
 
-// Ensure output directory exists safely
-try {
-  make_dir(output_dir)
-} catch (err) {}
+  // Ensure output directory exists safely
+  try {
+    safe.newDir(output_dir)
+  } catch (err) {}
+}
 
-fn minify_html(html: string) -> string {
+/*
+  Minify the given HTML string.
+  This function normalizes line endings, preserves <pre> blocks,
+  trims unnecessary whitespace, and collapses consecutive spaces.
+  It also closes gaps between HTML tags to produce compact output.
+*/
+export fn minify_html(html: string) -> string {
   // 1. Normalize carriage returns
   let normalized = swap(html, "\r", "")
   
@@ -83,13 +96,17 @@ fn minify_html(html: string) -> string {
   return joined
 }
 
-// Reusable I/O worker block
+/*
+  Process a single HTML file by reading its content, minifying it,
+  and writing the minified output to the specified path.
+  This function handles file I/O errors gracefully.
+*/
 fn process_file(in_path: string, out_path: string) {
   show "Processing:" in_path
   try {
-    let source_html = read_file(in_path)
+    let source_html = safe.read(in_path)
     let minified_html = minify_html(source_html)
-    let success = write_file(out_path, minified_html)
+    let success = safe.write(out_path, minified_html)
     
     if success {
       show "  -> Saved:" out_path "(" len(minified_html) "bytes )"
@@ -103,36 +120,44 @@ fn process_file(in_path: string, out_path: string) {
 // Execution Routing
 // ---------------------------------------------------------
 
-if ends_with(input_target, ".html") {
-  show "Running in Single File Mode..."
-  
-  // Cleanly extract the filename from the path
-  let path_parts = split(input_target, "/")
-  let filename = pop(path_parts)
-  
-  prompt target_out {output_dir "/" filename}
-  process_file(input_target, target_out)
-  
-} else {
-  show "Running in Batch Directory Mode..."
-  show "Scanning directory:" input_target
-  
-  try {
-    let files = list_dir(input_target)
-    let count = 0
+/*
+  Entry point for running the HTML minifier.
+  This function determines whether to run in single file mode or batch directory mode
+  based on the input target and invokes the appropriate processing functions.
+*/
+fn run_minify() { // Wrapped in function to prevent accidental execution from exported module
+  runCLI()
+  if ends_with(input_target, ".html") {
+    show "Running in Single File Mode..."
     
-    for file in files {
-      if ends_with(file, ".html") {
-        prompt target_in {input_target "/" file}
-        prompt target_out {output_dir "/" file}
-        
-        process_file(target_in, target_out)
-        count = count + 1
+    // Cleanly extract the filename from the path
+    let path_parts = split(input_target, "/")
+    let filename = pop(path_parts)
+    
+    prompt target_out {output_dir "/" filename}
+    process_file(input_target, target_out)
+    
+  } else {
+    show "Running in Batch Directory Mode..."
+    show "Scanning directory:" input_target
+    
+    try {
+      let files = safe.getFiles(input_target)
+      let count = 0
+      
+      for file in files {
+        if ends_with(file, ".html") {
+          prompt target_in {input_target "/" file}
+          prompt target_out {output_dir "/" file}
+          
+          process_file(target_in, target_out)
+          count = count + 1
+        }
       }
+      
+      show "Batch HTML minification complete. Processed" count "files."
+    } catch (err) {
+      show "Error reading directory. Ensure the path exists and permissions are valid." err
     }
-    
-    show "Batch HTML minification complete. Processed" count "files."
-  } catch (err) {
-    show "Error reading directory. Ensure the path exists and permissions are valid." err
   }
 }
