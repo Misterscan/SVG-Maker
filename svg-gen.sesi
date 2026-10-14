@@ -1,4 +1,4 @@
-allow "SesiDo/build" in with {createSVG} set_alias("SesiDo-Flash", "gemini-3-flash-preview")
+allow "SesiDo/build" in with {createSVG}
 
 let fallbackDescription = "A random scene of space with planets and stars."
 let svgReq = ""

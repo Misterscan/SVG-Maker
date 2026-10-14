@@ -2,8 +2,6 @@ allow "helpers/safe" in as Safe
 allow "SesiDo/build" in with {createSVG}
 allow "bin/ansi" in as TERM
 
-set_alias("SesiDo-Flash", "gemini-3-flash-preview")
-
 let PORT = 8080
 
 /**

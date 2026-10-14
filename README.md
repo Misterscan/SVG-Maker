@@ -7,7 +7,7 @@
 <p align="center">
   <img src="assets/badge_built_with.svg" alt="Built With Sesi" height="25" />
   <img src="assets/badge_library.svg" alt="Library std/draw" height="25" />
-  <img src="assets/badge_studio.svg" alt="SVG Studio v1.0.0" height="25" />
+  <img src="assets/badge_studio.svg" alt="SVG Studio v1.1.6" height="25" />
   <img src="assets/badge_license.svg" alt="MIT License" height="25" />
   <img src="assets/badge_framework.svg" alt="SesiDo Framework" height="25" />
 </p>
@@ -22,8 +22,8 @@ Includes **Sesi SVG Studio** and **SesiDo** — an agent framework for generatin
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org) v18+
-- [Sesi](https://github.com/misterscan/sesi) v1.6.6+ (for global `sesi` command instead of npm)
+- [Node.js](https://nodejs.org) v20+
+- [Sesi](https://github.com/misterscan/sesi) v1.9.0+
 - Dependencies installed:
 
 ```bash
@@ -40,7 +40,7 @@ An interactive browser-based editor for writing Sesi drawing code and previewing
 ### Launch the Studio
 
 ```bash
-npm run start
+npm start
 ```
 
 ### Launch the Studio (alternative)
