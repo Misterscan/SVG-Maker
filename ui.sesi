@@ -205,7 +205,7 @@ async fn handleRequest(req) {
 
       let out = ""
       let tempGenerateFile = "temp_generate_svg_" + str(time()) + ".sesi"
-      let requestCode = "allow \"SesiDo/build\" in with {createSVG}\nset_alias(\"SesiDo-Flash\", \"gemini-3-flash-preview\")\ntry {\n  show createSVG({query: " + to_json(description) + "})\n} catch (e) {\n  show \"Error running createSVG: \" + str(e)\n}\n"
+      let requestCode = "allow \"SesiDo/build\" in with {createSVG}\ntry {\n  show createSVG({query: " + to_json(description) + "})\n} catch (e) {\n  show \"Error running createSVG: \" + str(e)\n}\n"
       try {
         Safe.writeFile(tempGenerateFile, requestCode)
         out = run("sesi -l " + tempGenerateFile)
