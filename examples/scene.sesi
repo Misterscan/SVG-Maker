@@ -1,341 +1,203 @@
-// Sesi script to generate a premium SVG representing a late-night laptop scene with a cat
 allow "std/draw" in as Draw
+allow "std/math" in as Math
 
-show "Initializing SVG setup..."
-/* 
-  1. Define Linear and Radial Gradients
-   Background room wall gradient
-*/
-Draw.gradient("linear", "bgGrad", [
-  {"offset": "0%", "color": "#070814"},
-  {"offset": "50%", "color": "#0a0c20"},
-  {"offset": "100%", "color": "#04050d"}
-], {"x1": "0%", "y1": "0%", "x2": "100%", "y2": "100%"})
+// EDITABLE PARAMETERS — change these values and rerun the script.
+// clockText: time displayed in the laptop's menu bar. Keep it to five characters.
+// moonX: horizontal position of the crescent in the right windowpane (700–895).
+// starCount: number of stars scattered across the window; use 0 for a starless sky.
+// nightSeed: any integer; changes the star positions, rooftops, and lit city windows.
+// lampGlow: warmth and strength of the lamp's light spill, from 0 to 1.
+// screenGlow: strength of the laptop's blue light spill, from 0 to 1.
+// catCoat, catShadow, catStripe: hex colors for the cat's lit fur, shaded fur, and markings.
+// showSteam: set to false to remove the curls of steam above the mug.
+let clockText = "01:47"
+let moonX = 808
+let starCount = 48
+let nightSeed = 26
+let lampGlow = 0.72
+let screenGlow = 0.78
+let catCoat = "#e6a365"
+let catShadow = "#a95848"
+let catStripe = "#834343"
+let showSteam = true
 
-// Sky outside the window
-Draw.gradient("linear", "skyGrad", [
-  {"offset": "0%", "color": "#02040a"},
-  {"offset": "60%", "color": "#090d22"},
-  {"offset": "100%", "color": "#181436"}
-], {"x1": "0%", "y1": "0%", "x2": "0%", "y2": "100%"})
+Draw.gradient("linear","wall",[{offset:"0%",color:"#19192f"},{offset:"100%",color:"#392639"}],{x1:"5%",y1:"0%",x2:"90%",y2:"100%"})
+Draw.gradient("linear","night",[{offset:"0%",color:"#111b3a"},{offset:"65%",color:"#29385e"},{offset:"100%",color:"#77617c"}],{x1:"0%",y1:"0%",x2:"0%",y2:"100%"})
+Draw.gradient("linear","wood",[{offset:"0%",color:"#a26857"},{offset:"56%",color:"#744556"},{offset:"100%",color:"#472d42"}],{x1:"10%",y1:"0%",x2:"82%",y2:"100%"})
+Draw.gradient("linear","display",[{offset:"0%",color:"#20254f"},{offset:"100%",color:"#326784"}],{x1:"15%",y1:"0%",x2:"85%",y2:"100%"})
+Draw.gradient("linear","metal",[{offset:"0%",color:"#aeb5cf"},{offset:"55%",color:"#646681"},{offset:"100%",color:"#464358"}],{x1:"0%",y1:"0%",x2:"0%",y2:"100%"})
+Draw.gradient("linear","fur",[{offset:"0%",color:catCoat},{offset:"50%",color:catCoat},{offset:"100%",color:catShadow}],{x1:"0%",y1:"10%",x2:"90%",y2:"100%"})
+Draw.gradient("linear","shade",[{offset:"0%",color:"#a34f47"},{offset:"58%",color:"#e29463"},{offset:"100%",color:"#ffcb8c"}],{x1:"15%",y1:"0%",x2:"80%",y2:"100%"})
+Draw.gradient("radial","amber",[{offset:"0%",color:"#ffc17f",opacity:0.78},{offset:"46%",color:"#e89057",opacity:0.32},{offset:"100%",color:"#e89057",opacity:0}],{cx:"50%",cy:"50%",r:"50%"})
+Draw.gradient("radial","blue",[{offset:"0%",color:"#96ddff",opacity:0.58},{offset:"62%",color:"#71b2ee",opacity:0.20},{offset:"100%",color:"#71b2ee",opacity:0}],{cx:"50%",cy:"50%",r:"50%"})
+Draw.gradient("radial","moonHalo",[{offset:"0%",color:"#e1d0ff",opacity:0.31},{offset:"100%",color:"#e1d0ff",opacity:0}],{cx:"50%",cy:"50%",r:"50%"})
+Draw.raw("<defs><clipPath id='glass'><rect x='329' y='85' width='616' height='357' rx='74'/></clipPath><pattern id='wallFleck' width='59' height='47' patternUnits='userSpaceOnUse'><path d='M9 17h1m39 9h1M22 39h1M41 6h1M3 42h1' stroke='#f7c9ad' stroke-width='1' stroke-linecap='round' opacity='0.12'/><path d='M31 13h2m13 30h1M14 31h1' stroke='#100f20' stroke-width='1' opacity='0.25'/></pattern><clipPath id='screenClip'><rect x='391' y='347' width='321' height='183' rx='7'/></clipPath></defs>")
 
-// Window reflection gradient
-Draw.gradient("linear", "glassReflect", [
-  {"offset": "0%", "color": "#ffffff", "opacity": 0.08},
-  {"offset": "40%", "color": "#ffffff", "opacity": 0.01},
-  {"offset": "100%", "color": "#ffffff", "opacity": 0.0}
-], {"x1": "0%", "y1": "0%", "x2": "100%", "y2": "100%"})
-
-// Ambient Screen Glow Radial Gradient
-Draw.gradient("radial", "screenGlowGrad", [
-  {"offset": "0%", "color": "#00f2fe", "opacity": 0.35},
-  {"offset": "40%", "color": "#7c3aed", "opacity": 0.15},
-  {"offset": "100%", "color": "#000000", "opacity": 0.0}
-], {"cx": "50%", "cy": "50%", "r": "50%"})
-
-// Desk Light Cone Linear Gradient
-Draw.gradient("linear", "deskGlowGrad", [
-  {"offset": "0%", "color": "#00f2fe", "opacity": 0.4},
-  {"offset": "50%", "color": "#6366f1", "opacity": 0.15},
-  {"offset": "100%", "color": "#030712", "opacity": 0.0}
-], {"x1": "0%", "y1": "0%", "x2": "0%", "y2": "100%"})
-
-// Laptop metallic gradient
-Draw.gradient("linear", "laptopMetalGrad", [
-  {"offset": "0%", "color": "#4b5563"},
-  {"offset": "50%", "color": "#1f2937"},
-  {"offset": "100%", "color": "#111827"}
-], {"x1": "0%", "y1": "0%", "x2": "100%", "y2": "0%"})
-
-// Desk surface gradient
-Draw.gradient("linear", "deskGrad", [
-  {"offset": "0%", "color": "#0e131f"},
-  {"offset": "100%", "color": "#030408"}
-], {"x1": "0%", "y1": "0%", "x2": "0%", "y2": "100%"})
-
-// Screen LCD backlight gradient
-Draw.gradient("radial", "screenOverlayGrad", [
-  {"offset": "0%", "color": "#00f2fe", "opacity": 0.25},
-  {"offset": "100%", "color": "#000000", "opacity": 0.0}
-], {"cx": "50%", "cy": "100%", "r": "70%"})
-
-// 2. Setup Glowing Filters
-Draw.raw("<filter id=\"glow\" x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\"><feGaussianBlur stdDeviation=\"6\" result=\"blur\" /><feMerge><feMergeNode in=\"blur\" /><feMergeNode in=\"SourceGraphic\" /></feMerge></filter>")
-Draw.raw("<filter id=\"softGlow\" x=\"-80%\" y=\"-80%\" width=\"260%\" height=\"260%\"><feGaussianBlur stdDeviation=\"30\" result=\"blur\" /><feMerge><feMergeNode in=\"blur\" /><feMergeNode in=\"SourceGraphic\" /></feMerge></filter>")
-
-// 3. Inject CSS Animations
-Draw.style("
-  @keyframes twinkle {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 1.0; }
-  }
-  @keyframes tailSwing {
-    0%, 100% { transform: rotate(-6deg); }
-    50% { transform: rotate(14deg); }
-  }
-  @keyframes steamFlow {
-    0% { transform: translateY(0) scaleX(1); opacity: 0; }
-    15% { opacity: 0.5; }
-    50% { transform: translateY(-15px) scaleX(1.2); opacity: 0.2; }
-    100% { transform: translateY(-35px) scaleX(0.7); opacity: 0; }
-  }
-  @keyframes screenPulse {
-    0%, 100% { opacity: 0.8; }
-    50% { opacity: 0.95; }
-  }
-  .star-slow { animation: twinkle 4s infinite ease-in-out; }
-  .star-fast { animation: twinkle 2s infinite ease-in-out; }
-  .swinging-tail {
-    animation: tailSwing 3.5s infinite ease-in-out;
-    transform-origin: 210px 395px;
-  }
-  .steam-line {
-    animation: steamFlow 2.5s infinite linear;
-    transform-origin: bottom center;
-  }
-  .screen-glow-pulse {
-    animation: screenPulse 6s infinite ease-in-out;
-  }
-")
-
-show "Drawing Background Wall..."
-// Draw background wall
-Draw.rect(0, 0, 800, 800, "url(#bgGrad)")
-
-// Draw Window Area
-show "Drawing Window and Night Sky..."
-
-// Sky base
-Draw.rect(150, 80, 500, 340, "url(#skyGrad)")
-
-// Twinkling Stars
-let k = 0
-while k < 35 {
-  let sx = 150 + random() * 500
-  let sy = 80 + random() * 250
-  let sr = 0.5 + random() * 1.5
-  let sop = 0.3 + random() * 0.7
-  let sclass = "star-slow"
-  if random() > 0.5 {
-    sclass = "star-fast"
-  }
-  Draw.circle(sx, sy, sr, "#ffffff", {"opacity": sop, "class": sclass})
-  k = k + 1
+// Plaster, tall window, and the neighborhood beyond the glass.
+Draw.rect(0,0,1200,800,"url(#wall)")
+Draw.rect(0,0,1200,560,"url(#wallFleck)")
+Draw.ellipse(243,369,285,288,"url(#amber)",{opacity:lampGlow*0.66})
+Draw.path("M0 490H1200 M0 494H1200","none",{stroke:"#a67778",opacity:0.13})
+Draw.rect(303,66,667,410,"#171629",{rx:99})
+Draw.rect(313,67,648,393,"#4b3d58",{rx:87,stroke:"#77627b","stroke-width":2})
+Draw.rect(323,79,628,370,"#25243f",{rx:79})
+Draw.raw("<g clip-path='url(#glass)'>")
+Draw.rect(329,85,616,357,"url(#night)")
+Draw.circle(moonX,167,89,"url(#moonHalo)")
+for i = 0 to starCount {
+  Draw.circle(337 + Math.hash(i,nightSeed)*600,94 + Math.hash(i,nightSeed+9)*193,0.45 + Math.hash(i,nightSeed+22)*1.25,"#f6e4d8",{opacity:0.24 + Math.hash(i,nightSeed+67)*0.66})
 }
+Draw.path("M12 -33A35 35 0 1 0 24 23A31 31 0 0 1 12 -33Z","#ffe5b4",{transform:"translate(" + str(moonX) + " 167)"})
+Draw.path("M478 147v15m-7.5-7.5h15 M876 212v13m-6.5-6.5h13 M562 221v9m-4.5-4.5h9","none",{stroke:"#e9d6fb","stroke-width":1.25,"stroke-linecap":"round",opacity:0.78})
+Draw.path("M323 277C427 238 482 268 545 254S643 244 710 262 M695 289C746 261 811 275 854 264S923 253 950 263","none",{stroke:"#be98b5",opacity:0.22,"stroke-width":2,"stroke-linecap":"round"})
+Draw.path("M324 350L377 330L404 336L451 306L487 303L527 315L573 287L612 326L659 320L686 332L732 300L767 311L815 289L856 314L908 297L949 315V445H324Z","#3d4164")
+for i = 0 to 21 {
+  Draw.rect(327 + 30*i,342 - 60*Math.hash(i,nightSeed+41),19 + 16*Math.hash(i,nightSeed+45),112,"#272c4b")
+  for j = 0 to 10 {
+    if Math.hash(i*13+j,nightSeed+56) > 0.53 {
+      Draw.rect(331 + 30*i + 7*(j%3),349 - 60*Math.hash(i,nightSeed+41) + 11*Math.floor(j/3),3,4,"#f6c391",{rx:0.6,opacity:0.26 + 0.56*Math.hash(i*13+j,nightSeed+81)})
+    }
+  }
+}
+Draw.path("M326 383H367V367H401V375H425V351H467V403H510V384H543V371H579V392H637V370H683V380H711V354H748V361H769V394H801V371H841V385H870V357H909V370H948V445H326Z","#20243f")
+Draw.path("M441 351v-23m-7 8h14M727 354v-25m-8 7h16M896 357v-17","none",{stroke:"#20243f","stroke-width":2})
+for i = 0 to 58 {
+  Draw.rect(332 + 10.5*i,406 + 6*Math.floor(Math.hash(i,nightSeed+7)*5),3,3,"#e8a879",{rx:0.5,opacity:0.55*Math.hash(i,nightSeed+11)})
+}
+Draw.path("M354 267L459 86H490L358 314Z M830 442L945 244V271L846 442Z","#d7d3ed",{opacity:0.042})
+Draw.raw("</g>")
+Draw.rect(329,85,616,357,"none",{rx:74,stroke:"#a188a4","stroke-width":1.5,opacity:0.6})
+Draw.rect(631,83,13,361,"#332c47")
+Draw.line(632,87,632,439,"#7a657f",{"stroke-width":1.5})
+Draw.path("M306 435H963L980 448V462H291V448Z","#3f304a",{stroke:"#251e37","stroke-width":2})
+Draw.path("M294 448H977 M310 437H960","none",{stroke:"#8a687e","stroke-width":1.6})
 
-// Crescent Moon
-Draw.circle(530, 140, 35, "#fef3c7", {"opacity": 0.1, "filter": "url(#softGlow)"}) // moon glow
-Draw.path("M 530 115 A 25 25 0 1 0 555 140 A 21 21 0 1 1 530 115", "#fefef0", {"filter": "url(#glow)"})
+// Desk, light pools, and lamp.
+Draw.path("M57 526H1148L1200 600V764H0V600Z","url(#wood)")
+Draw.path("M57 526H1148","none",{stroke:"#ce9479","stroke-width":2,opacity:0.59})
+for i = 0 to 40 {
+  Draw.line(1170*Math.hash(i,31),537+5.3*i,1170*Math.hash(i,31)+31+270*Math.hash(i,52),537+5.3*i,"#f7aa83",{opacity:0.03+0.10*Math.hash(i,7),"stroke-width":0.7+Math.hash(i,16),"stroke-linecap":"round"})
+}
+Draw.ellipse(244,594,258,102,"url(#amber)",{opacity:lampGlow})
+Draw.ellipse(557,584,335,132,"url(#blue)",{opacity:screenGlow})
+Draw.ellipse(570,450,293,192,"url(#blue)",{opacity:screenGlow*0.66})
+Draw.path("M0 744H1200V800H0Z","#2c2034")
+Draw.path("M0 744H1200V754H0Z","#68404e")
+Draw.line(0,744,1200,744,"#c48973",{opacity:0.62,"stroke-width":2})
+Draw.path("M42 766H1158 M42 782H1158","none",{stroke:"#6d4556",opacity:0.38})
+Draw.path("M176 564C143 580 104 573 81 586S46 599 0 594","none",{stroke:"#332739","stroke-width":5,"stroke-linecap":"round"})
+Draw.ellipse(164,564,83,17,"#291d31",{opacity:0.5})
+Draw.path("M94 552Q94 541 164 541T234 552V563Q234 576 164 576T94 563Z","#54313e",{stroke:"#2b2134","stroke-width":2})
+Draw.ellipse(164,552,70,11,"#be7861")
+Draw.path("M164 552V298C164 270 181 251 209 251C235 251 252 270 252 300V313","none",{stroke:"#35243a","stroke-width":16,"stroke-linecap":"round"})
+Draw.path("M161 549V298C161 269 181 248 207 248C234 248 251 269 251 300V311","none",{stroke:"#c78660","stroke-width":6,"stroke-linecap":"round"})
+Draw.circle(252,305,10,"#d99364",{stroke:"#613b49","stroke-width":2})
+Draw.ellipse(251,399,146,123,"url(#amber)",{opacity:lampGlow*0.8})
+Draw.path("M190 363L212 313Q251 296 290 313L314 363Q252 383 190 363Z","url(#shade)",{stroke:"#753f45","stroke-width":2})
+Draw.ellipse(252,363,62,11,"#f2ab77")
+Draw.ellipse(252,365,52,7,"#ffe0a9")
+Draw.ellipse(253,366,24,4,"#fff2c8")
+Draw.path("M217 319L203 355 M231 315L223 352 M282 319L296 355","none",{stroke:"#fbd09b","stroke-width":1.3,opacity:0.58,"stroke-linecap":"round"})
 
-// Distant Mountain/Hill Silhouettes
-Draw.path("M 150 420 Q 280 370, 410 420 Z", "#0d0f22", {"opacity": 0.5})
-Draw.path("M 380 420 Q 520 380, 650 420 Z", "#0a0c1b", {"opacity": 0.6})
-Draw.path("M 150 420 L 260 395 L 420 412 L 530 390 L 650 420 Z", "#04050d")
+// Laptop: a cool glass screen, a quiet editor, and a foreshortened keyboard.
+Draw.ellipse(556,601,242,22,"#231e33",{opacity:0.55})
+Draw.rect(374,330,355,217,"#24253d",{rx:16,stroke:"#9995b3","stroke-width":2})
+Draw.rect(379,335,345,208,"#181d35",{rx:13})
+Draw.rect(391,347,321,183,"url(#display)",{rx:7})
+Draw.circle(552,341,2,"#777ca1")
+Draw.raw("<g clip-path='url(#screenClip)'>")
+Draw.rect(391,347,321,22,"#141f3d",{opacity:0.88})
+Draw.rect(391,369,62,161,"#192949",{opacity:0.69})
+Draw.rect(453,369,259,24,"#465979",{opacity:0.64})
+Draw.rect(453,393,259,137,"#1c2f50",{opacity:0.55})
+Draw.rect(453,512,259,18,"#7cb3d0",{opacity:0.24})
+Draw.circle(403,358,2.5,"#ec9c96")
+Draw.circle(412,358,2.5,"#f4c398")
+Draw.circle(421,358,2.5,"#9bd8cf")
+Draw.text(700,362,clockText,11,"#e0ecff",{"font-family":"monospace","text-anchor":"end"})
+Draw.text(464,385,"notes.txt",10,"#d4e6fa",{"font-family":"monospace"})
+Draw.rect(395,397,54,13,"#78a9c4",{rx:2,opacity:0.23})
+for i = 0 to 5 {
+  Draw.rect(401,389+12*i,4,4,"#b3cde1",{rx:1,opacity:0.58})
+  Draw.line(410,391+12*i,425+12*Math.hash(i,8),391+12*i,"#b3cde1",{"stroke-width":2,"stroke-linecap":"round",opacity:0.43})
+}
+for i = 0 to 8 {
+  Draw.line(465,406+i*12,469,406+i*12,"#93acc9",{opacity:0.47,"stroke-linecap":"round"})
+  Draw.line(480+7*(i%3),406+i*12,508+7*(i%3)+44*Math.hash(i,44),406+i*12,"#a7dedb",{"stroke-width":2.6,"stroke-linecap":"round",opacity:0.62})
+  Draw.line(574,406+i*12,593+62*Math.hash(i,56),406+i*12,"#c6a9e8",{"stroke-width":2.6,"stroke-linecap":"round",opacity:0.58})
+}
+Draw.path("M638 347H672L522 530H488Z","#e3f2ff",{opacity:0.05})
+Draw.raw("</g>")
+Draw.path("M374 543H728L783 590Q783 600 769 603H328Q314 600 317 590Z","url(#metal)",{stroke:"#2c2a43","stroke-width":2})
+Draw.path("M374 543H728 M319 590H781","none",{stroke:"#d4ddef","stroke-width":1.4,opacity:0.67})
+Draw.path("M397 549H705L732 573H369Z","#353953",{stroke:"#8188a4","stroke-width":1})
+for j = 0 to 4 {
+  for i = 0 to 17 {
+    Draw.rect(399+18*i-4*j,551+5*j,13+j*0.36,3.1,"#9caac6",{rx:0.9,opacity:0.55+0.2*Math.hash(i+18*j,5)})
+  }
+}
+Draw.path("M504 576H601L610 587H495Z","#747d9b",{stroke:"#a3aac2","stroke-width":0.8})
+Draw.path("M521 591H581L574 595H528Z","#bcc2d5",{opacity:0.73})
 
-// Window Glass Reflections
-Draw.polygon("220,80 320,80 180,420 150,420", "url(#glassReflect)")
-Draw.polygon("440,80 540,80 400,420 370,420", "url(#glassReflect)")
+// A sleeping tabby. One front paw has drifted onto the keyboard.
+Draw.ellipse(886,601,204,31,"#2d2134",{opacity:0.54})
+Draw.path("M778 559C774 499 821 458 885 452C963 443 1018 483 1031 540C1043 589 1003 607 952 608L807 602C778 603 756 585 778 559Z","url(#fur)",{stroke:"#532f40","stroke-width":3,"stroke-linejoin":"round"})
+Draw.path("M818 485C853 462 891 453 921 458 M942 462C977 471 1001 493 1014 518","none",{stroke:"#ffd09a","stroke-width":2.2,"stroke-linecap":"round",opacity:0.66})
+Draw.path("M881 453Q889 466 878 493Q902 484 901 453Z M918 454Q928 477 917 506Q944 494 939 458Z M953 463Q967 487 960 517Q983 505 973 473Z M985 480Q998 501 998 522Q1011 514 1008 502Z",catStripe,{opacity:0.66})
+Draw.path("M994 527C1052 526 1081 570 1044 600C1008 629 913 619 869 609C852 605 839 598 839 590C839 578 855 575 868 579C921 594 983 594 1006 580C1017 573 1013 565 1002 561C988 556 982 539 994 527Z","url(#fur)",{stroke:"#613543","stroke-width":2.5})
+Draw.path("M1034 536Q1028 550 1013 568 M1057 555Q1047 571 1019 582 M1051 590Q1030 593 1012 608 M990 591Q987 605 977 616 M951 593Q948 605 940 615 M917 589Q911 600 908 612 M885 583Q879 594 880 611","none",{stroke:catStripe,"stroke-width":8,"stroke-linecap":"round",opacity:0.58})
+Draw.path("M802 551C784 543 759 547 744 559C735 567 733 580 743 585C753 590 783 587 801 581C818 575 821 560 802 551Z","url(#fur)",{stroke:"#653b48","stroke-width":2})
+Draw.path("M746 570q-5 6-2 12 M755 568q-4 7-1 15 M758 556q8-5 20-6","none",{stroke:"#f9c599","stroke-width":1.4,"stroke-linecap":"round",opacity:0.72})
+Draw.path("M746 509Q726 478 731 446Q733 435 744 441L782 468Q800 463 818 469L842 443Q852 433 856 445Q869 474 856 503C866 528 856 551 832 563C802 578 762 571 740 549C728 538 728 521 746 509Z","url(#fur)",{stroke:"#573345","stroke-width":3,"stroke-linejoin":"round"})
+Draw.path("M744 455Q741 475 753 494L771 475Z M827 477L847 451Q854 468 848 493Z","#b36a68")
+Draw.path("M745 455Q743 472 750 484 M847 451q6 12 4 22","none",{stroke:"#f5bd9b","stroke-width":2,"stroke-linecap":"round",opacity:0.76})
+Draw.path("M776 470q8 9 12 24q6-11 2-26 M795 467q5 12 7 24q8-13 7-23 M742 510q10-4 21-2q-15 5-24 11 M737 526q14-3 22 0q-12 3-20 8 M857 504q-13-1-20 6q11-1 23 3 M860 523q-12-2-19 4q10 0 18 5",catStripe,{opacity:0.71})
+Draw.path("M784 532C794 535 798 528 809 528C824 528 830 546 817 556C806 566 774 560 768 548C764 540 774 532 784 532Z","#f4c594",{opacity:0.93})
+Draw.path("M753 519Q765 528 777 519 M810 521Q824 530 837 520","none",{stroke:"#50313f","stroke-width":2.8,"stroke-linecap":"round"})
+Draw.path("M785 534Q792 531 799 535Q796 541 791 542Q787 539 785 534Z","#824954")
+Draw.path("M791 541v5q-5 5-10 1m10-1q6 5 12 1","none",{stroke:"#824954","stroke-width":1.5,"stroke-linecap":"round"})
+Draw.path("M777 540Q748 533 715 540 M778 545Q748 544 724 555 M779 549Q755 553 742 566 M807 540Q842 531 870 537 M808 545Q843 542 866 551","none",{stroke:"#ffe4bf","stroke-width":1.35,"stroke-linecap":"round",opacity:0.79})
+Draw.path("M735 448Q729 474 746 505 M733 520Q729 536 749 551","none",{stroke:"#c5e3f2","stroke-width":2.2,"stroke-linecap":"round",opacity:screenGlow*0.76})
 
-// Soft Ambient Screen Glow on Wall & Window (Drawn behind the window frame and cat sill)
-Draw.ellipse(400, 495, 300, 220, "url(#screenGlowGrad)", {
-  "opacity": 0.85,
-  "class": "screen-glow-pulse"
-})
-
-// Window frame
-Draw.rect(150, 80, 500, 340, "none", {"stroke": "#0a0b12", "stroke-width": 16})
-
-// Inner frame mullions
-Draw.line(400, 80, 400, 420, "#0a0b12", {"stroke-width": 8})
-Draw.line(150, 240, 650, 240, "#0a0b12", {"stroke-width": 8})
-
-// Windowsill
-Draw.rect(130, 415, 540, 15, "#181d30") // Sill top
-Draw.rect(140, 430, 520, 10, "#0a0b12") // Sill bevel shadow
-
-// Draw Black Cat Silhouette on windowsill (Positioned at x: 210 to not be hidden by the laptop screen)
-show "Drawing Black Cat..."
-Draw.ellipse(210, 370, 22, 35, "#06070a") // Body
-Draw.circle(210, 325, 14, "#06070a") // Head
-Draw.polygon("199,318 200,305 207,314", "#06070a") // Left Ear
-Draw.polygon("221,318 220,305 213,314", "#06070a") // Right Ear
-
-// Main Tail body
-Draw.path("M 210 395 C 200 425, 230 445, 205 475", "none", {
-  "stroke": "#06070a",
-  "stroke-width": 6,
-  "stroke-linecap": "round",
-  "class": "swinging-tail"
-})
-
-// Cat Fur Rim Light (Cyan highlight reflecting screen glow on head & body)
-Draw.path("M 219,313 A 14,14 0 0,1 224,325", "none", {
-  "stroke": "#00f2fe",
-  "stroke-width": 1.5,
-  "opacity": 0.8,
-  "filter": "url(#glow)"
-})
-Draw.path("M 228,350 A 22,35 0 0,1 231,390", "none", {
-  "stroke": "#00f2fe",
-  "stroke-width": 2.0,
-  "opacity": 0.8,
-  "filter": "url(#glow)"
-})
-
-// Draw Desk in foreground
-show "Drawing Desk and Screen Ambient Glow..."
-Draw.rect(0, 520, 800, 280, "url(#deskGrad)")
-Draw.line(0, 520, 800, 520, "#1c2333", {"stroke-width": 2}) // Bevel top highlight
-
-// Light Cone reflection on Desk
-Draw.polygon("270,590 530,590 760,800 40,800", "url(#deskGlowGrad)", {
-  "opacity": 0.65,
-  "class": "screen-glow-pulse"
-})
-
-// Draw Laptop
-show "Drawing Laptop..."
-
-// Laptop lid (outer bezel)
-Draw.polygon("270,390 530,390 540,590 260,590", "#1e293b")
-
-// Screen display area (LCD glass)
-Draw.polygon("280,401 520,401 530,580 270,580", "#080c14")
-
-/*
-  Draw coding environment inside screen
-  Mock code lines (Left side)
-*/
-let lineY = 418
-Draw.line(292, lineY, 360, lineY, "#f43f5e", {"stroke-width": 4.5, "stroke-linecap": "round"}) // red
-lineY = lineY + 12
-Draw.line(292, lineY, 320, lineY, "#38bdf8", {"stroke-width": 4.5, "stroke-linecap": "round"}) // blue
-lineY = lineY + 12
-Draw.line(308, lineY, 390, lineY, "#34d399", {"stroke-width": 4.5, "stroke-linecap": "round"}) // green
-lineY = lineY + 12
-Draw.line(308, lineY, 350, lineY, "#fbbf24", {"stroke-width": 4.5, "stroke-linecap": "round"}) // yellow
-lineY = lineY + 12
-Draw.line(292, lineY, 375, lineY, "#c084fc", {"stroke-width": 4.5, "stroke-linecap": "round"}) // purple
-lineY = lineY + 12
-Draw.line(292, lineY, 310, lineY, "#38bdf8", {"stroke-width": 4.5, "stroke-linecap": "round"}) // blue
-lineY = lineY + 12
-Draw.line(308, lineY, 380, lineY, "#34d399", {"stroke-width": 4.5, "stroke-linecap": "round"}) // green
-lineY = lineY + 12
-Draw.line(324, lineY, 370, lineY, "#f43f5e", {"stroke-width": 4.5, "stroke-linecap": "round"}) // red
-lineY = lineY + 12
-Draw.line(292, lineY, 340, lineY, "#fbbf24", {"stroke-width": 4.5, "stroke-linecap": "round"}) // yellow
-
-// Mock Vector Artwork / Graph preview (Right side)
-
-// Sun & Mountain graphic
-Draw.circle(465, 450, 15, "#ec4899", {"opacity": 0.85}) // sun
-Draw.polygon("430,480 465,445 500,480", "#06b6d4", {"opacity": 0.9}) // cyan mountain
-Draw.polygon("455,480 480,455 515,480", "#8b5cf6", {"opacity": 0.8}) // purple mountain
-// Grid mesh under graphic
-Draw.line(425, 483, 515, 483, "#334155", {"stroke-width": 1})
-Draw.line(435, 488, 505, 488, "#334155", {"stroke-width": 1})
-Draw.line(445, 493, 495, 493, "#334155", {"stroke-width": 1})
-
-// Screen gloss overlay
-Draw.polygon("280,401 520,401 530,580 270,580", "url(#screenOverlayGrad)", {"opacity": 0.3})
-Draw.polygon("280,401 390,401 278,580 270,580", "url(#glassReflect)", {"opacity": 0.08}) // reflection streak
-
-// Laptop hinge
-Draw.rect(340, 587, 120, 6, "#0a0b12")
-
-// Keyboard base panel
-Draw.polygon("260,590 540,590 640,710 160,710", "url(#laptopMetalGrad)")
-
-// Keyboard keyboard recess
-Draw.polygon("275,598 525,598 550,660 250,660", "#0c0e17")
-
-// Backlit keys (using dashed line approximation for elegance)
-Draw.line(285, 606, 515, 606, "#00f2fe", {"stroke-width": 2.0, "stroke-dasharray": "8,3,10,3,6,3", "opacity": 0.65})
-Draw.line(278, 616, 522, 616, "#8b5cf6", {"stroke-width": 2.0, "stroke-dasharray": "12,3,8,3,12,3", "opacity": 0.65})
-Draw.line(271, 626, 529, 626, "#00f2fe", {"stroke-width": 2.0, "stroke-dasharray": "6,3,14,3,8,3", "opacity": 0.65})
-Draw.line(264, 636, 536, 636, "#8b5cf6", {"stroke-width": 2.0, "stroke-dasharray": "10,3,10,3,10,3", "opacity": 0.65})
-Draw.line(257, 646, 543, 646, "#00f2fe", {"stroke-width": 2.0, "stroke-dasharray": "14,3,6,3,14,3", "opacity": 0.65})
-Draw.line(330, 656, 470, 656, "#00f2fe", {"stroke-width": 2.0, "opacity": 0.8}) // spacebar
-
-// Trackpad
-Draw.polygon("360,670 440,670 445,695 355,695", "#172237", {"stroke": "#334155", "stroke-width": 1})
-
-// Laptop thickness/front-lip
-Draw.polygon("160,710 640,710 635,716 165,716", "#0f172a")
-
-// Soft shadow under laptop base
-Draw.polygon("150,716 650,716 630,724 170,724", "#020306", {"opacity": 0.85})
-
-// Draw Accessories
-show "Drawing Coffee Mug and Steam..."
-
-// Mug handle
-Draw.path("M 105 655 C 90 655, 90 680, 105 680", "none", {"stroke": "#1f2937", "stroke-width": 4.5, "stroke-linecap": "round"})
-
-// Mug body
-Draw.rect(105, 650, 30, 35, "#1f2937", {"rx": 4})
-
-// Mug rim
-Draw.ellipse(120, 650, 15, 5, "#374151")
-
-// Tea liquid glow
-Draw.ellipse(120, 650, 12, 3, "#f97316", {"opacity": 0.8, "filter": "url(#glow)"})
-
-// Animated Steam lines
-Draw.path("M 116 640 Q 110 625, 122 615 T 116 595", "none", {
-  "stroke": "#94a3b8",
-  "stroke-width": 2.0,
-  "stroke-linecap": "round",
-  "opacity": 0.4,
-  "class": "steam-line"
-})
-Draw.path("M 124 640 Q 130 625, 118 615 T 124 595", "none", {
-  "stroke": "#94a3b8",
-  "stroke-width": 2.0,
-  "stroke-linecap": "round",
-  "opacity": 0.4,
-  "class": "steam-line"
-})
-
-show "Drawing Desk Succulent Plant..."
-
-// Succulent pot shadow
-Draw.ellipse(680, 690, 16, 5, "#020306", {"opacity": 0.6})
-
-// Succulent pot
-Draw.polygon("665,650 695,650 690,690 670,690", "#2d3748")
-
-// Pot rim
-Draw.ellipse(680, 650, 15, 4, "#4a5568")
-
-// Leaves
-Draw.polygon("680,650 660,630 675,645", "#064e3b") // back leaf 1
-Draw.polygon("680,650 700,630 685,645", "#064e3b") // back leaf 2
-Draw.polygon("680,650 680,615 684,645", "#10b981") // center tall leaf
-Draw.polygon("680,650 668,622 674,644", "#059669") // middle leaf left
-Draw.polygon("680,650 692,622 686,644", "#34d399") // middle leaf right
-
-// Light highlight reflections on pot and leaves (from screen)
-Draw.line(665, 650, 670, 690, "#00f2fe", {"stroke-width": 1.5, "opacity": 0.5, "filter": "url(#glow)"})
-Draw.polygon("680,650 660,630 670,642", "#00f2fe", {"opacity": 0.35, "filter": "url(#glow)"})
-
-show "Saving SVG file..."
+// Tea and an open notebook in the foreground.
+Draw.ellipse(264,614,80,20,"#362235",{opacity:0.53})
+Draw.ellipse(261,607,63,14,"#5a353e",{stroke:"#bc8068","stroke-width":1.4})
+Draw.ellipse(261,605,46,8,"#74434a")
+Draw.path("M289 553C335 539 336 584 299 587","none",{stroke:"#302d45","stroke-width":13,"stroke-linecap":"round"})
+Draw.path("M294 553C325 545 331 574 305 582","none",{stroke:"#829baf","stroke-width":4,"stroke-linecap":"round"})
+Draw.path("M223 543H300L294 593Q291 609 262 609Q233 609 229 593Z","#45566d",{stroke:"#2d293f","stroke-width":2})
+Draw.ellipse(261.5,543,38.5,10,"#b4b4bb")
+Draw.ellipse(261.5,545,32,6.5,"#57333a")
+Draw.path("M232 553L237 590Q240 600 253 601 M238 548Q252 543 270 547","none",{stroke:"#efb28b","stroke-width":2,"stroke-linecap":"round",opacity:0.75})
+Draw.path("M250 577Q261 587 273 577 M252 571v1 M271 571v1","none",{stroke:"#d2bdac","stroke-width":1.8,"stroke-linecap":"round"})
+if showSteam {
+  Draw.path("M249 529C227 512 265 506 251 487C244 477 249 471 254 466 M267 527C288 509 252 503 270 480C276 472 275 466 270 459","none",{stroke:"#ffe1b8","stroke-width":2,"stroke-linecap":"round",opacity:0.28+lampGlow*0.32})
+}
+Draw.path("M391 650L499 630Q527 627 552 641Q574 627 605 629L702 641L719 698L612 707Q574 706 554 719Q529 705 492 710L376 708Z","#352439",{opacity:0.60})
+Draw.path("M397 646L501 628Q532 625 552 639Q575 624 609 627L696 638L711 688L612 700Q579 699 554 710Q529 697 494 701L384 701Z","#694753",{stroke:"#36293d","stroke-width":2})
+Draw.path("M402 641L495 625Q526 621 552 637L554 702Q531 688 493 692L391 695Z","#e5bea3")
+Draw.path("M552 637Q576 620 608 624L690 635L703 683L610 693Q579 692 554 702Z","#f2d1ad")
+Draw.path("M552 638L554 701 M399 687L490 685Q529 681 554 696Q578 685 610 687L698 678","none",{stroke:"#a27273","stroke-width":1.1,opacity:0.72})
+for i = 0 to 5 {
+  Draw.path("M407 644Q490 625 538 641 M572 641Q605 631 674 642","none",{stroke:"#aa7979","stroke-width":0.85,opacity:0.47,transform:"translate(0 " + str(7*i) + ")"})
+}
+Draw.path("M416 665q15-6 34-6m-40 13q21-6 51-8m-52 15q34-8 64-9","none",{stroke:"#845d67","stroke-width":1.8,"stroke-linecap":"round",opacity:0.73})
+Draw.path("M601 691L668 650","none",{stroke:"#9f7476","stroke-width":7,"stroke-linecap":"round",opacity:0.48})
+Draw.path("M595 688L663 646","none",{stroke:"#37485d","stroke-width":5,"stroke-linecap":"round"})
+Draw.path("M601 684L656 650","none",{stroke:"#8ca9b1","stroke-width":1.2,"stroke-linecap":"round"})
+Draw.path("M595 686L590 691L597 690Z","#3c3044")
 
 // Save SVG file
-let dirpath = "playground/svgs"
-let filepath = "playground/svgs/laptop_late_night.svg"
+show "Saving SVG file..."
+let dirpath = "playground/svgs/"
+let filepath = dirpath + "laptop_late_night_v2.svg"
+fn saveSVG() { return Draw.save_svg(filepath, 1200, 800) }
 
 try {
-  let created = make_dir(dirpath)
-  if created {
+  if !exists(dirpath) {
+    make_dir(dirpath)
     show "Directory verified/created:" dirpath
   }
-  let success = Draw.save_svg(filepath, 800, 800)
-  if success {
-    show "Successfully generated and saved SVG to: " + filepath
-  } else {
-    show "Failed to save SVG"
-  }
-} catch (err) {
-  show "Error writing SVG file:" str(err)
-}
+  saveSVG | retry({max_retries: 2, initial_delay: 1000})
+  show "Successfully generated and saved SVG to:" filepath
+} catch (err) { show "Error writing SVG file:" str(err) }

@@ -15,5 +15,3 @@ if len(args) > 0 {
 }
 
 show createSVG({query: svgReq})
-
-if len(args) == 0 {input("Press Enter to exit...")}

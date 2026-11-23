@@ -3,7 +3,6 @@ allow "SesiDo/build" in with {createSVG}
 allow "bin/ansi" in as TERM
 
 let PORT = 8080
-
 /**
   Extracts the generated SVG path from the output text.
 
@@ -14,28 +13,15 @@ let PORT = 8080
   - The extracted SVG path as a string, or an empty string if not found.
 */
 fn extractGeneratedSvgPath(outputText) {
-  if outputText == null || outputText == "" {
-    return ""
-  }
-
+  if outputText == null || outputText == "" { return "" }
   let outputIndex = index_of(outputText, "output=")
-  if outputIndex < 0 {
-    return ""
-  }
-
+  if outputIndex < 0 { return "" }
   let remainder = slice(outputText, outputIndex + 7, len(outputText))
   let endIndex = index_of(remainder, ";")
-  if endIndex < 0 {
-    endIndex = index_of(remainder, "\n")
-  }
-  if endIndex >= 0 {
-    remainder = slice(remainder, 0, endIndex)
-  }
-
+  if endIndex < 0 { endIndex = index_of(remainder, "\n") }
+  if endIndex >= 0 { remainder = slice(remainder, 0, endIndex) }
   remainder = trim(remainder)
-  if remainder == "" {
-    return ""
-  }
+  if remainder == "" { return "" }
   return remainder
 }
 
@@ -55,15 +41,12 @@ fn extractGeneratedSvgPath(outputText) {
 */
 async fn handleRequest(req) {
   show "Request:" req.method req.path
-  
   if req.method == "GET" && req.path == "/" {
     try {
       let html = Safe.readFile("assets/index.html")
       return {
         status: 200,
-        headers: {
-          "Content-Type": "text/html"
-        },
+        headers: {"Content-Type": "text/html"},
         body: html
       }
     } catch (err) {
@@ -73,16 +56,12 @@ async fn handleRequest(req) {
       }
     }
   }
-
   if req.method == "GET" && req.path == "/style.css" {
     try {
       let css = Safe.readFile("assets/style.css")
       return {
         status: 200,
-        headers: {
-          "Content-Type": "text/css; charset=utf-8",
-          "Cache-Control": "no-cache"
-        },
+        headers: {"Content-Type": "text/css; charset=utf-8", "Cache-Control": "no-cache"},
         body: css
       }
     } catch (err) {
@@ -92,83 +71,50 @@ async fn handleRequest(req) {
       }
     }
   }
-
   if req.method == "POST" && req.path == "/render" {
     try {
       let payload = from_json(req.body)
       let c = payload.code
       let w = payload.width
       let h = payload.height
-      
       let finalCode = c
-      if !contains(c, "std/draw") {
-        finalCode = "allow \"std/draw\" in as Draw\n" + finalCode
-      }
-      
+      if !contains(c, "std/draw") { finalCode = "allow \"std/draw\" in as Draw\n" + finalCode }
       // Append render block to extract the SVG from standard output
       finalCode = finalCode + "\n\ntry {\n  show \"===SVG_START===\"\n  show Draw.render(" + str(w) + ", " + str(h) + ")\n  show \"===SVG_END===\"\n} catch (err) {\n  show \"Render failed:\" err\n}\n"
-      
       let tempFile = "temp_draw.sesi"
       Safe.writeFile(tempFile, finalCode)
-      
       let out = ""
-      try {out = run("sesi " + tempFile); trash(tempFile, true)} catch (e) {
-        try { trash(tempFile, true) } catch (err2) {}
-      }
-      
+      try {out = run("sesi " + tempFile); trash(tempFile, true)} catch (e) { try { trash(tempFile, true) } catch (err2) {} }
       let svg = ""
       let error = null
-      
       if contains(out, "===SVG_START===") && contains(out, "===SVG_END===") {
         let parts = split(out, "===SVG_START===")
         if len(parts) > 1 {
           let innerParts = split(parts[1], "===SVG_END===")
-          if len(innerParts) > 0 {
-            svg = trim(innerParts[0])
-          }
+          if len(innerParts) > 0 { svg = trim(innerParts[0]) }
         }
-      } else {
-        error = "Output did not contain valid SVG markers. Execution output:\n" + out
-      }
-      
-      if contains(out, "Error at line") || contains(out, "Exception") || contains(out, "Undefined") {
-        error = out
-      }
-      
+      } else { error = "Output did not contain valid SVG markers. Execution output:\n" + out }
+      if contains(out, "Error at line") || contains(out, "Exception") || contains(out, "Undefined") { error = out }
       let cleanOut = out
       if contains(cleanOut, "===SVG_START===") {
         let parts = split(cleanOut, "===SVG_START===")
         let endParts = split(cleanOut, "===SVG_END===")
         let before = parts[0]
         let after = ""
-        if len(endParts) > 1 {
-          after = endParts[1]
-        }
+        if len(endParts) > 1 { after = endParts[1] }
         cleanOut = before + "[SVG XML Rendered]" + after
       }
-      
       if error != null {
         return {
           status: 200,
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: to_json({
-            error: error,
-            output: cleanOut
-          })
+          headers: {"Content-Type": "application/json"},
+          body: to_json_str({error: error, output: cleanOut})
         }
       }
-      
       return {
         status: 200,
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: to_json({
-          svg: svg,
-          output: cleanOut
-        })
+        headers: {"Content-Type": "application/json"},
+        body: to_json_str({svg: svg, output: cleanOut})
       }
     } catch (err) {
       return {
@@ -176,33 +122,22 @@ async fn handleRequest(req) {
         headers: {
           "Content-Type": "application/json"
         },
-        body: to_json({
-          error: "Failed to run Sesi script: " + str(err)
-        })
+        body: to_json_str({error: "Failed to run Sesi script: " + str(err)})
       }
     }
   }
-
   if req.method == "POST" && req.path == "/generate-svg" {
     try {
       let payload = from_json(req.body)
       let description = ""
-      if payload.description != null {
-        description = trim(payload.description)
-      }
-
+      if payload.description != null { description = trim(payload.description)}
       if description == "" {
         return {
           status: 200,
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: to_json({
-            error: "Please provide an SVG description."
-          })
+          headers: {"Content-Type": "application/json"},
+          body: to_json_str({error: "Please provide an SVG description."})
         }
       }
-
       let out = ""
       let tempGenerateFile = "temp_generate_svg_" + str(time()) + ".sesi"
       let requestCode = "allow \"SesiDo/build\" in with {createSVG}\ntry {\n  show createSVG({query: " + to_json(description) + "})\n} catch (e) {\n  show \"Error running createSVG: \" + str(e)\n}\n"
@@ -214,67 +149,38 @@ async fn handleRequest(req) {
         try { trash(tempGenerateFile, true) } catch (cleanupError) {}
         out = "Error running SVG generator: " + str(e)
       }
-
       let svg = ""
       let outputPath = extractGeneratedSvgPath(out)
-
-      if outputPath != "" {
-        svg = Safe.readFile(outputPath)
-      }
-
+      if outputPath != "" { svg = Safe.readFile(outputPath) }
       if svg == null || svg == "" {
         return {
           status: 200,
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: to_json({
-            error: "Generated SVG file was not found or was empty.",
-            output: out,
-            outputPath: outputPath
-          })
+          headers: {"Content-Type": "application/json"},
+          body: to_json_str({error: "Generated SVG file was not found or was empty.", output: out, outputPath: outputPath})
         }
       }
-
       return {
         status: 200,
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: to_json({
-          svg: svg,
-          output: out,
-          outputPath: outputPath
-        })
+        headers: {"Content-Type": "application/json"},
+        body: to_json_str({svg: svg, output: out, outputPath: outputPath})
       }
     } catch (err) {
       return {
         status: 200,
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: to_json({
-          error: "Failed to generate SVG: " + str(err)
-        })
+        headers: {"Content-Type": "application/json"},
+        body: to_json_str({error: "Failed to generate SVG: " + str(err)})
       }
     }
   }
-  
   return {
     status: 404,
     body: "Not found"
   }
 }
 
-
 TERM.box("🚀 Sesi SVG Studio Server is starting...")
-
 let server = listen(PORT, handleRequest)
-try {
-  open("http://localhost:" + str(PORT))
-} catch (e) {
-  show "Error opening browser:" e
-}
-
-let end = input("Press Enter to stop the server...\n")
-server.close(end)
+let site = "http://localhost:" + str(PORT)
+try { open(site) }
+catch (e) { raise_error("BrowserError", "Error opening browser:" + str(e) + "\nTry opening the URL manually: " + site) }
+show "Press Ctrl+C to stop the server at any time...\n"

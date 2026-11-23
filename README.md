@@ -7,7 +7,7 @@
 <p align="center">
   <img src="assets/badge_built_with.svg" alt="Built With Sesi" height="25" />
   <img src="assets/badge_library.svg" alt="Library std/draw" height="25" />
-  <img src="assets/badge_studio.svg" alt="SVG Studio v1.1.6" height="25" />
+  <img src="assets/badge_studio.svg" alt="SVG Studio v1.1.7" height="25" />
   <img src="assets/badge_license.svg" alt="MIT License" height="25" />
   <img src="assets/badge_framework.svg" alt="SesiDo Framework" height="25" />
 </p>
