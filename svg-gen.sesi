@@ -14,4 +14,4 @@ if len(args) > 0 {
     }
 }
 
-show createSVG({query: svgReq})
+createSVG({query: svgReq})
